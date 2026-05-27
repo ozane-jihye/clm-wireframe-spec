@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLM 시스템운영관리포털 — 기획서</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.9/static/pretendard.min.css" rel="stylesheet">
+<style>
+
+:root {
+  --bg-app: #0F1117;
+  --bg-sidebar: #161822;
+  --bg-panel: #1C1E2B;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(99,102,241,0.08);
+  --bg-active: rgba(99,102,241,0.14);
+  --border: #2A2D3A;
+  --border-light: #E5E7EB;
+  --text-primary: #F1F2F6;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --text-dark: #111827;
+  --text-dark-secondary: #4B5563;
+  --accent: #6366F1;
+  --accent-hover: #818CF8;
+  --accent-bg: rgba(99,102,241,0.12);
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+  --badge-draft: #6B7280;
+  --badge-ready: #D97706;
+  --badge-active: #059669;
+  --wire-bg: #1A1D2E;
+  --wire-card: #F8F9FB;
+  --wire-input-bg: #F3F4F6;
+  --wire-input-border: #D1D5DB;
+  --wire-btn: #4F6BED;
+  --wire-btn-hover: #4059D4;
+  --wire-dark-bg: #171B2D;
+  --spec-bg: #FFFFFF;
+  --spec-header: #F8FAFC;
+  --spec-border: #E2E8F0;
+  --tab-active: #6366F1;
+  --tab-inactive: #94A3B8;
+  --font-display: 'Pretendard', -apple-system, sans-serif;
+  --font-body: 'Pretendard', -apple-system, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.25);
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ─── LAYOUT ─── */
+.app { display:flex; height:100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-header {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-header h1 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.sidebar-header .project-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 3px 10px;
+  background: var(--accent-bg);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.nav-section {
+  padding: 6px 14px;
+}
+.nav-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 8px 6px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+  font-size: 13px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { background: var(--bg-active); color: var(--accent); font-weight: 600; }
+.nav-item .nav-icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  border-radius: 4px;
+  background: var(--border);
+  color: var(--text-muted);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-icon {
+  background: var(--accent);
+  color: #fff;
+}
+.nav-item .nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.nav-badge.mvp { background: rgba(16,185,129,0.15); color: var(--success); }
+.nav-item-sub {
+  padding-left: 38px;
+  font-size: 12px;
+}
+
+/* Main Content */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.top-bar {
+  height: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  gap: 12px;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.breadcrumb span { color: var(--text-secondary); }
+.breadcrumb .sep { color: var(--text-muted); font-size: 10px; }
+.top-bar .version-badge {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: rgba(99,102,241,0.12);
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+.content-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── PAGE: IA TREE ─── */
+.page { display: none; padding: 32px; overflow-y: auto; flex: 1; }
+.page.active { display: block; }
+
+.page-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+.page-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+/* IA Tree */
+.ia-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ia-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.ia-node:hover {
+  border-color: var(--accent);
+  background: var(--bg-active);
+}
+.ia-node .ia-id {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 80px;
+}
+.ia-node .ia-name {
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+}
+.ia-node .ia-scope {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.ia-scope.mvp { background: rgba(16,185,129,0.12); color: var(--success); }
+.ia-scope.done { background: rgba(99,102,241,0.12); color: var(--accent); }
+.ia-children {
+  margin-left: 32px;
+  border-left: 2px solid var(--border);
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+/* ─── PAGE: SCREEN LIST ─── */
+.screen-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-panel);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.screen-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+}
+.screen-table td {
+  padding: 10px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.screen-table tr { cursor: pointer; transition: background var(--transition); }
+.screen-table tbody tr:hover { background: var(--bg-hover); }
+.screen-table .status-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(16,185,129,0.12);
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* ─── PAGE: SCREEN SPEC ─── */
+.screen-spec-page {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+.screen-spec-page.active {
+  display: flex;
+}
+.spec-top-info {
+  padding: 20px 28px 0;
+  flex-shrink: 0;
+}
+.spec-screen-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.spec-screen-id {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  padding: 2px 8px;
+  background: var(--accent-bg);
+  border-radius: 4px;
+}
+.spec-screen-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.spec-screen-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  margin-bottom: 12px;
+}
+
+/* User Flow toggle */
+.flow-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: all var(--transition);
+}
+.flow-toggle:hover { border-color: var(--accent); }
+.flow-toggle .arrow { transition: transform var(--transition); font-size: 10px; color: var(--text-muted); }
+.flow-toggle .arrow.open { transform: rotate(90deg); }
+.flow-toggle span { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.flow-content {
+  display: none;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  margin-top: -15px;
+  margin-bottom: 14px;
+}
+.flow-content.open { display: block; }
+.flow-steps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.flow-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--bg-sidebar);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.flow-step.current { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); font-weight: 600; }
+.flow-arrow { color: var(--text-muted); font-size: 10px; }
+
+/* Main spec body: 2-column */
+.spec-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+}
+
+/* Left: Wireframe */
+.wireframe-pane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--wire-dark-bg);
+}
+.wireframe-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar);
+}
+.wireframe-toolbar .wf-tab {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.wireframe-toolbar .wf-tab:hover { color: var(--text-secondary); }
+.wireframe-toolbar .wf-tab.active { background: var(--accent-bg); color: var(--accent); }
+.wireframe-viewport {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.wireframe-viewport::-webkit-scrollbar { width: 4px; height: 4px; }
+.wireframe-viewport::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* Right: Spec Panel */
+.spec-panel {
+  width: 420px;
+  min-width: 420px;
+  display: flex;
+  flex-direction: column;
+  background: var(--spec-bg);
+  overflow: hidden;
+}
+.spec-panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--spec-border);
+  background: var(--spec-header);
+  flex-shrink: 0;
+}
+.spec-panel-tab {
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tab-inactive);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition);
+}
+.spec-panel-tab:hover { color: var(--text-dark-secondary); }
+.spec-panel-tab.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
+.spec-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+.spec-panel-content::-webkit-scrollbar { width: 4px; }
+.spec-panel-content::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
+
+/* Spec sections */
+.spec-section { margin-bottom: 20px; }
+.spec-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dark-secondary);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--spec-border);
+}
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.spec-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-weight: 600;
+  color: var(--text-dark-secondary);
+  background: #F8FAFC;
+  border: 1px solid var(--spec-border);
+  font-size: 11px;
+}
+.spec-table td {
+  padding: 6px 8px;
+  color: var(--text-dark);
+  border: 1px solid var(--spec-border);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.spec-table td code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: #F1F5F9;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.spec-desc-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 1px 2px;
+}
+.desc-input { background: #EFF6FF; color: #2563EB; }
+.desc-btn { background: #F0FDF4; color: #16A34A; }
+.desc-text { background: #FEF3C7; color: #D97706; }
+.desc-link { background: #EDE9FE; color: #7C3AED; }
+.desc-check { background: #F0FDFA; color: #0D9488; }
+
+/* Interaction tab */
+.interaction-item {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--spec-border);
+  font-size: 12px;
+}
+.interaction-trigger {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--text-dark);
+  min-width: 140px;
+}
+.interaction-arrow {
+  color: var(--text-dark-secondary);
+  flex-shrink: 0;
+}
+.interaction-result {
+  color: var(--text-dark-secondary);
+}
+
+/* ─── WIREFRAME RENDERS ─── */
+/* SYS-001 Login */
+.wf-login-container {
+  width: 480px;
+  background: var(--wire-dark-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.wf-login-bg {
+  padding: 40px 0 30px;
+  text-align: center;
+  background: linear-gradient(135deg, #171B2D 0%, #1E2340 100%);
+}
+.wf-login-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+.wf-login-subtitle {
+  font-size: 11px;
+  color: #7B83A6;
+  margin-top: 4px;
+}
+.wf-login-card {
+  background: var(--wire-card);
+  margin: 0 32px 32px;
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-md);
+}
+.wf-login-card h3 {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 20px;
+}
+/* wf-groupware-badge removed - not in Pencil */
+.wf-input-group { margin-bottom: 10px; }
+.wf-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--wire-input-border);
+  border-radius: var(--radius-sm);
+  background: var(--wire-input-bg);
+  font-size: 13px;
+  color: var(--text-dark);
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.wf-input:focus { border-color: var(--accent); }
+.wf-input::placeholder { color: #9CA3AF; }
+.wf-login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0 18px;
+  font-size: 12px;
+}
+.wf-checkbox {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-dark-secondary);
+  cursor: pointer;
+}
+.wf-checkbox input { accent-color: var(--accent); }
+.wf-link {
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.wf-link:hover { color: var(--accent-hover); }
+.wf-btn-primary {
+  width: 100%;
+  padding: 11px;
+  background: var(--wire-btn);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition);
+  font-family: var(--font-body);
+}
+.wf-btn-primary:hover { background: var(--wire-btn-hover); }
+.wf-login-footer {
+  text-align: center;
+  padding: 16px 0;
+}
+.wf-login-footer .divider {
+  border-top: 1px solid #E5E7EB;
+  margin: 0 32px 12px;
+}
+.wf-login-footer p {
+  font-size: 11px;
+  color: #7B83A6;
+}
+.wf-copyright {
+  text-align: center;
+  padding: 8px 0 20px;
+  font-size: 10px;
+  color: #4B5263;
+}
+
+/* SYS-001.01 계정 신청 */
+.wf-register-container {
+  width: 480px;
+  background: linear-gradient(135deg, #171B2D 0%, #1E2340 100%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.wf-register-header {
+  padding: 30px 0 16px;
+  text-align: center;
+}
+.wf-register-card {
+  background: var(--wire-card);
+  margin: 0 32px 24px;
+  border-radius: var(--radius-md);
+  padding: 24px 22px;
+  box-shadow: var(--shadow-md);
+}
+.wf-back-link {
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  margin-bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.wf-register-card h3 {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+.wf-register-card .subtitle {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dark-secondary);
+  margin-bottom: 18px;
+}
+.wf-form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.wf-form-row .wf-input { flex: 1; }
+.wf-btn-outline {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid var(--wire-btn);
+  color: var(--wire-btn);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  transition: all var(--transition);
+}
+.wf-btn-outline:hover { background: var(--accent-bg); }
+.wf-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dark-secondary);
+  margin-bottom: 4px;
+  display: block;
+}
+.wf-label .required { color: var(--error); }
+.wf-field-group { margin-bottom: 10px; }
+.wf-input.disabled {
+  background: #E5E7EB;
+  color: #9CA3AF;
+  cursor: not-allowed;
+  border-color: #D1D5DB;
+}
+
+/* SYS-001-2FA */
+.wf-2fa-container {
+  width: 440px;
+  background: linear-gradient(135deg, #171B2D 0%, #1E2340 100%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.wf-2fa-card {
+  background: var(--wire-card);
+  margin: 0 32px 24px;
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-md);
+}
+.wf-2fa-card h3 {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+}
+.wf-2fa-desc {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dark-secondary);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+.wf-phone-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.wf-phone-display .phone-num {
+  flex: 1;
+  padding: 9px 12px;
+  background: var(--wire-input-bg);
+  border: 1px solid var(--wire-input-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-dark);
+}
+.wf-btn-sm {
+  padding: 9px 14px;
+  background: #374151;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-body);
+}
+.wf-code-input-area { margin-top: 14px; }
+.wf-code-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+}
+.wf-code-label .required { color: var(--error); margin-left: 2px; }
+.wf-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wf-code-row .wf-input { flex: 1; }
+.wf-timer {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--error);
+  min-width: 40px;
+}
+.wf-btn-disabled {
+  width: 100%;
+  padding: 11px;
+  background: #D1D5DB;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: not-allowed;
+  margin-top: 16px;
+  font-family: var(--font-body);
+}
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.toast {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  animation: toast-in 0.3s ease, toast-out 0.3s ease 2.7s forwards;
+  white-space: nowrap;
+}
+.toast.success { background: var(--success); }
+.toast.error { background: var(--error); }
+.toast.info { background: var(--info); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toast-out { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in 0.15s ease;
+}
+.modal-card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  width: 380px;
+  box-shadow: var(--shadow-lg);
+}
+.modal-card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+.modal-card p {
+  font-size: 13px;
+  color: var(--text-dark-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.modal-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  border: 1px solid var(--wire-input-border);
+  background: #fff;
+  color: var(--text-dark-secondary);
+  transition: all var(--transition);
+}
+.modal-btn:hover { background: #F3F4F6; }
+.modal-btn.primary {
+  background: var(--wire-btn);
+  color: #fff;
+  border-color: var(--wire-btn);
+}
+.modal-btn.primary:hover { background: var(--wire-btn-hover); }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* 2FA State tabs */
+.state-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 8px 14px;
+  flex-wrap: wrap;
+}
+.state-tab {
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: transparent;
+  transition: all var(--transition);
+}
+.state-tab:hover { border-color: var(--text-secondary); color: var(--text-secondary); }
+.state-tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+/* Spec panel toggle */
+.spec-panel-toggle {
+  position: absolute;
+  right: 420px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 48px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--text-muted);
+  z-index: 10;
+}
+
+/* Responsive for spec panel */
+.spec-body { position: relative; }
+
+
+/* iframe 콘텐츠 영역 */
+.iframe-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.iframe-pane iframe {
+  flex: 1;
+  border: none;
+  background: var(--bg-app);
+}
+.iframe-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  gap: 10px;
+}
+.spin {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>CLM 기획서</h1>
+      <div class="project-badge"><span>●</span> 시스템운영관리포털 (SYS)</div>
+    </div>
+    <div class="sidebar-nav">
+
+      <!-- 공통 -->
+      <div class="nav-section">
+        <div class="nav-section-title">공통</div>
+        <div class="nav-item" onclick="goHome('ia')">
+          <span class="nav-icon">⌂</span> 홈
+        </div>
+      </div>
+
+      <!-- 구조 -->
+      <div class="nav-section">
+        <div class="nav-section-title">구조</div>
+        <div class="nav-item" onclick="showLocalPage('ia', 'IA 구조도')">
+          <span class="nav-icon">IA</span> IA 구조도
+        </div>
+        <div class="nav-item" onclick="showLocalPage('screens', '화면 목록')">
+          <span class="nav-icon">목</span> 화면 목록
+        </div>
+      </div>
+
+      <!-- PAGES -->
+      <div class="nav-section">
+        <div class="nav-section-title">PAGES</div>
+        <div class="nav-item" onclick="showLocalPage('policy', '공통 정책')">
+          <span class="nav-icon">📋</span> 공통 정책
+        </div>
+        <div class="nav-item" onclick="showLocalPage('changelog', '변경 이력')">
+          <span class="nav-icon">📝</span> 변경 이력
+        </div>
+      </div>
+
+      <!-- SYS-001 -->
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-001 로그인</div>
+        <div class="nav-item" id="nav-sys001" onclick="loadScreen('sys-001','sys001','SYS-001 로그인')">
+          <span class="nav-icon">01</span> 로그인
+          <span class="nav-badge mvp">MVP</span>
+        </div>
+        <div class="nav-item nav-item-sub" id="nav-sys001_01" onclick="loadScreen('sys-001','sys001_01','SYS-001.01 사용 신청')">
+          <span class="nav-icon">▸</span> 사용 신청
+          <span class="nav-badge mvp">MVP</span>
+        </div>
+        <div class="nav-item nav-item-sub" id="nav-sys001_2fa" onclick="loadScreen('sys-001','sys001_2fa','SYS-001-2FA 2단계 인증')">
+          <span class="nav-icon">▸</span> 2단계 인증
+          <span class="nav-badge mvp">MVP</span>
+        </div>
+      </div>
+
+      <!-- SYS-002 -->
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-002 대시보드</div>
+        <div class="nav-item" id="nav-sys002" onclick="loadScreen('sys-002','sys002','SYS-002 대시보드')">
+          <span class="nav-icon">01</span> 대시보드
+          <span class="nav-badge wip">작업중</span>
+        </div>
+      </div>
+
+      <!-- SYS-003 -->
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-003 테넌트 관리</div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-003','sys003_01','SYS-003.01.01 테넌트 관리')">
+          <span class="nav-icon">01</span> 테넌트 관리 (리스트)
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-003','sys003_02','SYS-003.01.02 테넌트 등록/수정')">
+          <span class="nav-icon">02</span> 테넌트 등록/수정
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-003','sys003_03','SYS-003.01.03 운행속성 설정')">
+          <span class="nav-icon">03</span> 운행속성 설정
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-003','sys003_04','SYS-003.01.04.01 Media Spec 목록')">
+          <span class="nav-icon">04</span> Media Spec 목록
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-003','sys003_05','SYS-003.01.04.02 Media Spec 등록/수정')">
+          <span class="nav-icon">05</span> Media Spec 등록/수정
+          <span class="nav-badge todo">예정</span>
+        </div>
+      </div>
+
+      <!-- SYS-004 -->
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-004 사용자/권한 관리</div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-004','sys004_01','SYS-004.01.01 사용자 관리')">
+          <span class="nav-icon">01</span> 사용자 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-004','sys004_02','SYS-004.01.02 권한 관리')">
+          <span class="nav-icon">02</span> 권한 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-004','sys004_03','SYS-004.02.01 부서 관리')">
+          <span class="nav-icon">03</span> 부서 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-004','sys004_04','SYS-004.02.02 사업자 관리')">
+          <span class="nav-icon">04</span> 사업자 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-004','sys004_05','SYS-004.02.03 테넌트 사용자 관리')">
+          <span class="nav-icon">05</span> 테넌트 사용자 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-004','sys004_06','SYS-004.02.04 테넌트 권한 관리')">
+          <span class="nav-icon">06</span> 테넌트 권한 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+      </div>
+
+      <!-- SYS-005 -->
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-005 시스템 설정</div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_01','SYS-005.01.01 공통코드 목록')">
+          <span class="nav-icon">01</span> 공통코드 목록 조회
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_02','SYS-005.01.02 공통코드 상세')">
+          <span class="nav-icon">02</span> 공통코드 상세 조회
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_03','SYS-005.01.03 공통코드 등록/수정')">
+          <span class="nav-icon">03</span> 공통코드 등록/수정
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_04','SYS-005.02.01 알림 채널 목록')">
+          <span class="nav-icon">04</span> 알림 채널 목록 조회
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_05','SYS-005.02.02 알림 채널 상세')">
+          <span class="nav-icon">05</span> 알림 채널 상세/연동
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_06','SYS-005.03.01 메뉴/기능코드 관리')">
+          <span class="nav-icon">06</span> 메뉴/기능코드 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_07','SYS-005.04.01 공지사항 관리')">
+          <span class="nav-icon">07</span> 공지사항 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_08','SYS-005.06.01 버전 목록')">
+          <span class="nav-icon">08</span> 버전 목록
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-005','sys005_09','SYS-005.06.02 배포 이력')">
+          <span class="nav-icon">09</span> 배포 이력
+          <span class="nav-badge todo">예정</span>
+        </div>
+      </div>
+
+      <!-- SYS-006 -->
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-006 광고 관리</div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-006','sys006_01','SYS-006.01.01 배포 대상 소재')">
+          <span class="nav-icon">01</span> 배포 대상 소재 목록
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-006','sys006_02','SYS-006.01.02 소재 상세')">
+          <span class="nav-icon">02</span> 소재 상세 + 배포 매체
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-006','sys006_03','SYS-006.01.04 배포 실패 재처리')">
+          <span class="nav-icon">03</span> 배포 실패 재처리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-006','sys006_04','SYS-006.02.01 편성 규칙 관리')">
+          <span class="nav-icon">04</span> 편성 규칙 관리
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-006','sys006_05','SYS-006.02.03 편성 결과 조회')">
+          <span class="nav-icon">05</span> 편성 결과 조회 (간트)
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-006','sys006_06','SYS-006.03.01 광고 집행 실적')">
+          <span class="nav-icon">06</span> 광고 집행 실적
+          <span class="nav-badge todo">예정</span>
+        </div>
+      </div>
+
+      <!-- SYS-007 -->
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-007 운영 모니터링</div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-007','sys007_01','SYS-007.01 통합 매체 현황')">
+          <span class="nav-icon">01</span> 통합 매체 현황
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-007','sys007_02','SYS-007.02 배포 처리 현황')">
+          <span class="nav-icon">02</span> 배포 처리 현황
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-007','sys007_03','SYS-007.03 시스템 상태')">
+          <span class="nav-icon">03</span> 시스템 상태
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-007','sys007_04','SYS-007.04 오류 로그')">
+          <span class="nav-icon">04</span> 오류 로그
+          <span class="nav-badge todo">예정</span>
+        </div>
+        <div class="nav-item nav-item-sub" onclick="loadScreen('sys-007','sys007_05','SYS-007.05 감사 로그')">
+          <span class="nav-icon">05</span> 감사 로그
+          <span class="nav-badge todo">예정</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="top-bar">
+      <div class="breadcrumb" id="breadcrumb">
+        <span>SYS</span><span class="sep">›</span><span id="bc-current">IA 구조도</span>
+      </div>
+      <div class="version-badge" onclick="showToast('info','버전 v24.9.1 — 2026-04-24 최종')">v24.9.1</div>
+    </div>
+
+    <div class="content-area" id="contentArea">
+      <!-- PAGE: IA -->
+      <div class="page active" id="page-ia">
+        <div class="page-title">IA 구조도</div>
+        <div class="page-desc">SYS-001 로그인 범위 · 클릭 시 화면 스펙으로 이동</div>
+        <div class="ia-tree">
+          <div class="ia-node" onclick="showScreen('sys001')">
+            <span class="ia-id">SYS-001</span>
+            <span class="ia-name">로그인</span>
+            <span class="ia-scope mvp">MVP</span>
+            <span class="ia-scope done">✓ 완료</span>
+          </div>
+          <div class="ia-children">
+            <div class="ia-node" onclick="showScreen('sys001_01')">
+              <span class="ia-id">SYS-001.01</span>
+              <span class="ia-name">사용 신청 (임직원 전용)</span>
+              <span class="ia-scope mvp">MVP</span>
+              <span class="ia-scope done">✓ 완료</span>
+            </div>
+            <div class="ia-node" onclick="showScreen('sys001_2fa')">
+              <span class="ia-id">SYS-001-2FA</span>
+              <span class="ia-name">2단계 인증 (4종 상태)</span>
+              <span class="ia-scope mvp">MVP</span>
+              <span class="ia-scope done">✓ 완료</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: SCREEN LIST -->
+      <div class="page" id="page-screens">
+        <div class="page-title">화면 목록</div>
+        <div class="page-desc">SYS-001 로그인 범위 화면 목록</div>
+        <table class="screen-table">
+          <thead>
+            <tr>
+              <th>Screen ID</th>
+              <th>화면명</th>
+              <th>Pencil Node</th>
+              <th>상태</th>
+              <th>완료일</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="showScreen('sys001')">
+              <td style="color:var(--accent);font-family:var(--font-mono);font-weight:600">SYS-001</td>
+              <td style="color:var(--text-primary)">로그인</td>
+              <td><code style="font-size:11px;background:rgba(99,102,241,0.12);color:var(--accent);padding:2px 6px;border-radius:3px">3aXt1</code></td>
+              <td><span class="status-done">✓ 완료</span></td>
+              <td>2026-04-09</td>
+            </tr>
+            <tr onclick="showScreen('sys001_01')">
+              <td style="color:var(--accent);font-family:var(--font-mono);font-weight:600">SYS-001.01</td>
+              <td style="color:var(--text-primary)">사용 신청 (임직원 전용)</td>
+              <td><code style="font-size:11px;background:rgba(99,102,241,0.12);color:var(--accent);padding:2px 6px;border-radius:3px">QNaBI</code></td>
+              <td><span class="status-done">✓ 완료</span></td>
+              <td>2026-04-09</td>
+            </tr>
+            <tr onclick="showScreen('sys001_2fa')">
+              <td style="color:var(--accent);font-family:var(--font-mono);font-weight:600">SYS-001-2FA</td>
+              <td style="color:var(--text-primary)">2단계 인증 (4종 상태)</td>
+              <td><code style="font-size:11px;background:rgba(99,102,241,0.12);color:var(--accent);padding:2px 6px;border-radius:3px">1cGDx</code> 외 3종</td>
+              <td><span class="status-done">✓ 완료</span></td>
+              <td>2026-04-20</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PAGE: 공통 정책 -->
+      <div class="page" id="page-policy">
+        <div class="page-title">공통 정책</div>
+        <div class="page-desc">SYS-001 로그인 · 계정 관련 권한 · 계정 · 비즈니스 정책</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+
+          <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">🔐 역할 정의</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <tr style="border-bottom:1px solid var(--border)">
+                <th style="text-align:left;padding:5px 8px;color:var(--text-muted);font-size:11px;font-weight:600">역할</th>
+                <th style="text-align:left;padding:5px 8px;color:var(--text-muted);font-size:11px;font-weight:600">포털</th>
+                <th style="text-align:left;padding:5px 8px;color:var(--text-muted);font-size:11px;font-weight:600">설명</th>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">슈퍼어드민</td><td style="padding:6px 8px"><span style="padding:2px 8px;border-radius:8px;background:rgba(99,102,241,.15);color:var(--accent);font-size:11px;font-weight:600">SYS</span></td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">전체 플랫폼 테넌트·사용자·설정 관리</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">시스템 운영자</td><td style="padding:6px 8px"><span style="padding:2px 8px;border-radius:8px;background:rgba(99,102,241,.15);color:var(--accent);font-size:11px;font-weight:600">SYS</span></td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">운영 모니터링, 인코딩/배포 처리</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">매체사 관리자</td><td style="padding:6px 8px"><span style="padding:2px 8px;border-radius:8px;background:rgba(16,185,129,.12);color:#10B981;font-size:11px;font-weight:600">ADP</span></td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">테넌트 전체 설정 및 권한 관리</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">운영 담당자</td><td style="padding:6px 8px"><span style="padding:2px 8px;border-radius:8px;background:rgba(16,185,129,.12);color:#10B981;font-size:11px;font-weight:600">ADP</span></td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">소재 검수, 편성·송출 관리</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">영업 담당자</td><td style="padding:6px 8px"><span style="padding:2px 8px;border-radius:8px;background:rgba(16,185,129,.12);color:#10B981;font-size:11px;font-weight:600">ADP</span></td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">계약/청약 등록</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">정산 담당자</td><td style="padding:6px 8px"><span style="padding:2px 8px;border-radius:8px;background:rgba(16,185,129,.12);color:#10B981;font-size:11px;font-weight:600">ADP</span></td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">정산 처리, 정산서 발행</td></tr>
+              <tr><td style="padding:6px 8px;color:var(--text-secondary)">거점 관리자</td><td style="padding:6px 8px"><span style="padding:2px 8px;border-radius:8px;background:rgba(16,185,129,.12);color:#10B981;font-size:11px;font-weight:600">ADP</span></td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">담당 거점 콘텐츠·게시판 전용</td></tr>
+            </table>
+          </div>
+
+          <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">👤 계정 정책</div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px">2FA 인증 정책</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px">
+              <tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:5px 8px;color:var(--text-muted);font-size:11px">접속 조건</th><th style="text-align:left;padding:5px 8px;color:var(--text-muted);font-size:11px">처리</th></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">사내 IP 접속</td><td style="padding:6px 8px;color:#10B981;font-weight:600;font-size:12px">인증 패스</td></tr>
+              <tr><td style="padding:6px 8px;color:var(--text-secondary)">외부 IP 접속</td><td style="padding:6px 8px;color:#EF4444;font-weight:600;font-size:12px">휴대폰 점유 인증 필요</td></tr>
+            </table>
+            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px">내부 임직원</div>
+            <ul style="font-size:12px;color:var(--text-secondary);padding-left:16px;line-height:2;margin-bottom:14px">
+              <li>그룹웨어 아이디/비밀번호 연동</li>
+              <li>별도 계정 발급 없음</li>
+              <li>퇴직 처리 시 자동 차단</li>
+              <li style="color:var(--accent)">Phase 1: LDAP 미연동, 수동 입력</li>
+            </ul>
+            <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">계정 상태값</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span style="padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(16,185,129,.12);color:#10B981">활성</span>
+              <span style="padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(239,68,68,.12);color:#EF4444">잠금</span>
+              <span style="padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(245,158,11,.12);color:#F59E0B">대기</span>
+              <span style="padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(107,114,128,.12);color:#6B7280">삭제</span>
+              <span style="padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(107,114,128,.12);color:#6B7280">거절</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+
+          <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">🔄 계정 상태 전환 규칙</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:5px 8px;color:var(--text-muted);font-size:11px">전환</th><th style="padding:5px 8px;color:var(--text-muted);font-size:11px;text-align:center">허용</th><th style="text-align:left;padding:5px 8px;color:var(--text-muted);font-size:11px">비고</th></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">대기 → 활성</td><td style="padding:6px 8px;text-align:center;color:#10B981;font-weight:700">✓</td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">승인 완료</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">대기 → 거절</td><td style="padding:6px 8px;text-align:center;color:#10B981;font-weight:700">✓</td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">등록 요청 거절</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">활성 → 잠금</td><td style="padding:6px 8px;text-align:center;color:#F59E0B;font-weight:700">자동</td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">로그인 실패 N회 초과</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">잠금 → 활성</td><td style="padding:6px 8px;text-align:center;color:#10B981;font-weight:700">✓</td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">관리자 잠금 해제</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">활성 → 삭제</td><td style="padding:6px 8px;text-align:center;color:#10B981;font-weight:700">✓</td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">관리자 삭제 처리</td></tr>
+              <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;color:var(--text-secondary)">삭제 → 활성</td><td style="padding:6px 8px;text-align:center;color:#EF4444;font-weight:700">✕</td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">복구 불가, 재등록 필요</td></tr>
+              <tr><td style="padding:6px 8px;color:var(--text-secondary)">거절 → 활성</td><td style="padding:6px 8px;text-align:center;color:#EF4444;font-weight:700">✕</td><td style="padding:6px 8px;color:var(--text-secondary);font-size:11px">재등록 필요</td></tr>
+            </table>
+          </div>
+
+          <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">📋 비즈니스 정책 요약</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="padding:10px 12px;background:var(--bg-sidebar);border-radius:var(--radius-sm);border-left:3px solid var(--accent)">
+                <div style="font-size:11px;font-weight:700;color:var(--text-primary);margin-bottom:3px">재원·편성 정책</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">기본값 플랫폼 설정(Locked) · 매체사 Range Editable · 오버부킹 시 경고 후 강제 확정 or 반려 · 우선순위: 최우선이벤트 > 이벤트 > 일반</div>
+              </div>
+              <div style="padding:10px 12px;background:var(--bg-sidebar);border-radius:var(--radius-sm);border-left:3px solid #10B981">
+                <div style="font-size:11px;font-weight:700;color:var(--text-primary);margin-bottom:3px">소재 정책</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">검수 기한 2영업일 · 인코딩 기준: Media Spec Template · 소재 코드 자동 부여 · 청약 종료 후 1년 보관 → 아카이브(삭제 아님)</div>
+              </div>
+              <div style="padding:10px 12px;background:var(--bg-sidebar);border-radius:var(--radius-sm);border-left:3px solid #F59E0B">
+                <div style="font-size:11px;font-weight:700;color:var(--text-primary);margin-bottom:3px">정산 정책</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">월별 마감 · 정산서 익월 10일 이내 · 세금계산서 외부 시스템 연동 · 집행 전 100% 환불 / 집행 후 잔여분 비례 정산</div>
+              </div>
+              <div style="padding:10px 12px;background:var(--bg-sidebar);border-radius:var(--radius-sm);border-left:3px solid #6366F1">
+                <div style="font-size:11px;font-weight:700;color:var(--text-primary);margin-bottom:3px">테넌트 정책</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">ACTIVE 이전 포털 접근 차단 · 설정 미완료 상태 접속 시 편성 오류 방지 · 플레이어 관리는 SYS 전용</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PAGE: 변경 이력 -->
+      <div class="page" id="page-changelog">
+        <div class="page-title">변경 이력</div>
+        <div class="page-desc">SYS-001 로그인 범위 · PRD v24 기준 변경 이력 타임라인</div>
+
+        <div style="display:flex;gap:0;position:relative">
+          <!-- 타임라인 세로선 -->
+          <div style="position:absolute;left:119px;top:0;bottom:0;width:2px;background:var(--border)"></div>
+
+          <div style="display:flex;flex-direction:column;gap:0;width:100%">
+
+            <!-- v24.9.1 -->
+            <div style="display:flex;gap:0;align-items:flex-start;margin-bottom:20px">
+              <div style="min-width:120px;text-align:right;padding-right:20px;padding-top:2px">
+                <div style="font-size:11px;font-weight:700;color:var(--accent);font-family:var(--font-mono)">v24.9.1</div>
+                <div style="font-size:10px;color:var(--text-muted)">2026-04-24</div>
+              </div>
+              <div style="width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-app);margin-top:2px;flex-shrink:0;position:relative;z-index:1"></div>
+              <div style="flex:1;margin-left:16px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--accent);border-radius:var(--radius-md)">
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:6px">SYS-004 사용자/권한 관리 — 3Depth 구조 재구성</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7">기존 5개 2Depth(시스템 운영자/테넌트 사용자/팀/권한/사업자) → 2개 2Depth + 6개 3Depth로 재구성. "팀 관리" → "부서 관리" 명칭 변경. LNB 과도한 길이 해소.</div>
+              </div>
+            </div>
+
+            <!-- v24.9 -->
+            <div style="display:flex;gap:0;align-items:flex-start;margin-bottom:20px">
+              <div style="min-width:120px;text-align:right;padding-right:20px;padding-top:2px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);font-family:var(--font-mono)">v24.9</div>
+                <div style="font-size:10px;color:var(--text-muted)">2026-04-24</div>
+              </div>
+              <div style="width:12px;height:12px;border-radius:50%;background:var(--bg-panel);border:2px solid var(--border);margin-top:2px;flex-shrink:0;position:relative;z-index:1"></div>
+              <div style="flex:1;margin-left:16px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md)">
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:6px">SYS-004 사용자/권한 관리 — 전면 재구성</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7">ADP 접속 사용자 관리 체계 확립. 사업자/팀/권한그룹 선행 관리 필요에 따라 SYS-004.02~05 신설. 권한 그룹은 SYS에서만 CRUD, ADP는 부여만 가능.</div>
+              </div>
+            </div>
+
+            <!-- v24.8 -->
+            <div style="display:flex;gap:0;align-items:flex-start;margin-bottom:20px">
+              <div style="min-width:120px;text-align:right;padding-right:20px;padding-top:2px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);font-family:var(--font-mono)">v24.8</div>
+                <div style="font-size:10px;color:var(--text-muted)">2026-04-23</div>
+              </div>
+              <div style="width:12px;height:12px;border-radius:50%;background:var(--bg-panel);border:2px solid var(--border);margin-top:2px;flex-shrink:0;position:relative;z-index:1"></div>
+              <div style="flex:1;margin-left:16px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md)">
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:6px">SYS-006.05 장비 제어 확장 · Media Spec 관리 상세 확정</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7">SYS-006.05에 런처 재실행/리부트/즉시 업데이트/볼륨 설정/점검 모드 전환 추가(개별+일괄). SYS-003.03 Media Spec 필드 확정. SYS-003.01.03 송출 속성에 Media Spec 현황 영역 추가.</div>
+              </div>
+            </div>
+
+            <!-- v24.7 -->
+            <div style="display:flex;gap:0;align-items:flex-start;margin-bottom:20px">
+              <div style="min-width:120px;text-align:right;padding-right:20px;padding-top:2px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);font-family:var(--font-mono)">v24.7</div>
+                <div style="font-size:10px;color:var(--text-muted)">2026-04-23</div>
+              </div>
+              <div style="width:12px;height:12px;border-radius:50%;background:var(--bg-panel);border:2px solid var(--border);margin-top:2px;flex-shrink:0;position:relative;z-index:1"></div>
+              <div style="flex:1;margin-left:16px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md)">
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:6px">SYS-003.01.03 테넌트 속성 설정 완료</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7">4개 섹션(기본 속성/기능 설정/광고 운영 속성/송출 속성)으로 재구성. 재원 초수 자동 계산. 이벤트 청약 사용 필드 추가. ADP 연동 영향 명시.</div>
+              </div>
+            </div>
+
+            <!-- v24.4~6 -->
+            <div style="display:flex;gap:0;align-items:flex-start;margin-bottom:20px">
+              <div style="min-width:120px;text-align:right;padding-right:20px;padding-top:2px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);font-family:var(--font-mono)">v24.4~6</div>
+                <div style="font-size:10px;color:var(--text-muted)">2026-04-22</div>
+              </div>
+              <div style="width:12px;height:12px;border-radius:50%;background:var(--bg-panel);border:2px solid var(--border);margin-top:2px;flex-shrink:0;position:relative;z-index:1"></div>
+              <div style="flex:1;margin-left:16px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md)">
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:6px">테넌트 관리 구조 개편 · 사용여부 제거</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7">v24.4: 테넌트 상태(DRAFT/READY/ACTIVE) 도입, [속성] 버튼 추가, 온보딩 7단계 → 속성 설정 탭으로 흡수. v24.5: CONFIGURING 상태 제거. v24.6: 사용여부 필드 전면 제거.</div>
+              </div>
+            </div>
+
+            <!-- v24.2~3 -->
+            <div style="display:flex;gap:0;align-items:flex-start;margin-bottom:20px">
+              <div style="min-width:120px;text-align:right;padding-right:20px;padding-top:2px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);font-family:var(--font-mono)">v24.2~3</div>
+                <div style="font-size:10px;color:var(--text-muted)">2026-04-21~22</div>
+              </div>
+              <div style="width:12px;height:12px;border-radius:50%;background:var(--bg-panel);border:2px solid var(--border);margin-top:2px;flex-shrink:0;position:relative;z-index:1"></div>
+              <div style="flex:1;margin-left:16px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md)">
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:6px">대시보드 정책 변경 · SYS-006 기능 확장</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7">v24.2: Active 테넌트만 노출, 계약 현황 삭제, 매체 상태 탭 리스트 교체, 배포/인코딩 재처리 기능 추가. v24.3: 고객사 1:1 테넌트 통합, "테넌트 등록"으로 화면명 통일.</div>
+              </div>
+            </div>
+
+            <!-- v24.0 -->
+            <div style="display:flex;gap:0;align-items:flex-start;margin-bottom:20px">
+              <div style="min-width:120px;text-align:right;padding-right:20px;padding-top:2px">
+                <div style="font-size:11px;font-weight:700;color:var(--text-secondary);font-family:var(--font-mono)">v24.0</div>
+                <div style="font-size:10px;color:var(--text-muted)">2026-03-24</div>
+              </div>
+              <div style="width:12px;height:12px;border-radius:50%;background:var(--bg-panel);border:2px solid var(--border);margin-top:2px;flex-shrink:0;position:relative;z-index:1"></div>
+              <div style="flex:1;margin-left:16px;padding:12px 16px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md)">
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary);margin-bottom:6px">PRD v24 최초 확정</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.7">SYS 포털 전체 IA 확정 (36화면). ADP 포털 전체 IA 확정 (74화면). SYS-001 로그인·계정신청 화면 스펙 완료.</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- iframe 영역 (화면 스펙용) -->
+      <div class="iframe-pane" id="iframePaneWrapper" style="display:none;">
+        <div class="iframe-loading" id="iframeLoading">
+          <div class="spin"></div> 화면 불러오는 중...
+        </div>
+        <iframe id="specFrame" style="display:none;" title="화면 스펙"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+let currentNavId = null;
+let currentFile = null;
+
+function setBreadcrumb(text) {
+  document.getElementById('bc-current').textContent = text;
+}
+
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  if (id) {
+    const el = document.getElementById('nav-' + id);
+    if (el) el.classList.add('active');
+  }
+  currentNavId = id;
+}
+
+// 로컬 페이지 (IA구조도, 화면목록, 공통정책, 변경이력)
+function showLocalPage(page, name) {
+  document.getElementById('iframePaneWrapper').style.display = 'none';
+  document.querySelectorAll('.page, .screen-spec-page').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  setBreadcrumb(name);
+  setActiveNav(null);
+  history.pushState(null, '', '#' + page);
+}
+
+function goHome(page) {
+  showLocalPage('ia', 'IA 구조도');
+}
+
+// iframe 로드 (메뉴별 화면)
+function loadScreen(file, screenId, name) {
+  setActiveNav(screenId);
+  setBreadcrumb(name);
+  history.pushState(null, '', '#' + screenId);
+
+  // 로컬 페이지 숨김
+  document.querySelectorAll('.page, .screen-spec-page').forEach(el => el.classList.remove('active'));
+
+  const wrapper = document.getElementById('iframePaneWrapper');
+  const loading = document.getElementById('iframeLoading');
+  const frame = document.getElementById('specFrame');
+
+  wrapper.style.display = 'flex';
+  wrapper.style.flexDirection = 'column';
+
+  // 같은 파일이면 화면만 전환
+  if (currentFile === file) {
+    frame.contentWindow.postMessage({ showScreen: screenId }, '*');
+    return;
+  }
+
+  currentFile = file;
+  loading.style.display = 'flex';
+  frame.style.display = 'none';
+
+  frame.onload = function() {
+    loading.style.display = 'none';
+    frame.style.display = 'block';
+    setTimeout(() => {
+      frame.contentWindow.postMessage({ showScreen: screenId }, '*');
+    }, 100);
+  };
+
+  frame.src = 'pages/' + file + '.html';
+}
+
+// ─── 기존 JS 함수들 ───
+function showPage(page) {
+  showLocalPage(page, page);
+}
+
+function showScreen(screen) {
+  const names = {
+    sys001: 'SYS-001 로그인',
+    sys001_01: 'SYS-001.01 사용 신청',
+    sys001_2fa: 'SYS-001-2FA 2단계 인증'
+  };
+  loadScreen('sys-001', screen, names[screen] || screen);
+}
+
+function updateBreadcrumb(text) {
+  setBreadcrumb(text);
+}
+
+function toggleFlow(el) {
+  const arrow = el.querySelector('.arrow');
+  const content = el.nextElementSibling;
+  arrow.classList.toggle('open');
+  content.classList.toggle('open');
+}
+
+function showToast(type, msg) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// URL hash 초기 라우팅
+window.addEventListener('load', function() {
+  const hash = location.hash.replace('#','');
+  const screenMap = {
+    'sys001': ['sys-001','sys001','SYS-001 로그인'],
+    'sys001_01': ['sys-001','sys001_01','SYS-001.01 사용 신청'],
+    'sys001_2fa': ['sys-001','sys001_2fa','SYS-001-2FA 2단계 인증'],
+    'sys002': ['sys-002','sys002','SYS-002 대시보드'],
+  };
+  const pageMap = ['ia','screens','policy','changelog'];
+  if (!hash) return;
+  if (screenMap[hash]) {
+    loadScreen(...screenMap[hash]);
+  } else if (pageMap.includes(hash)) {
+    const names = { ia:'IA 구조도', screens:'화면 목록', policy:'공통 정책', changelog:'변경 이력' };
+    showLocalPage(hash, names[hash]);
+  }
+});
+</script>
+</body>
+</html>
