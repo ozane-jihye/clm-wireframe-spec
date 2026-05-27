@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYS-001 로그인 — CLM 기획서</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.9/static/pretendard.min.css" rel="stylesheet">
+<style>
+
+:root {
+  --bg-app: #0F1117;
+  --bg-sidebar: #161822;
+  --bg-panel: #1C1E2B;
+  --bg-card: #ffffff;
+  --bg-hover: rgba(99,102,241,0.08);
+  --bg-active: rgba(99,102,241,0.14);
+  --border: #2A2D3A;
+  --border-light: #E5E7EB;
+  --text-primary: #F1F2F6;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --text-dark: #111827;
+  --text-dark-secondary: #4B5563;
+  --accent: #6366F1;
+  --accent-hover: #818CF8;
+  --accent-bg: rgba(99,102,241,0.12);
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+  --badge-draft: #6B7280;
+  --badge-ready: #D97706;
+  --badge-active: #059669;
+  --wire-bg: #1A1D2E;
+  --wire-card: #F8F9FB;
+  --wire-input-bg: #F3F4F6;
+  --wire-input-border: #D1D5DB;
+  --wire-btn: #4F6BED;
+  --wire-btn-hover: #4059D4;
+  --wire-dark-bg: #171B2D;
+  --spec-bg: #FFFFFF;
+  --spec-header: #F8FAFC;
+  --spec-border: #E2E8F0;
+  --tab-active: #6366F1;
+  --tab-inactive: #94A3B8;
+  --font-display: 'Pretendard', -apple-system, sans-serif;
+  --font-body: 'Pretendard', -apple-system, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.25);
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ─── LAYOUT ─── */
+.app { display:flex; height:100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-header {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-header h1 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.sidebar-header .project-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 3px 10px;
+  background: var(--accent-bg);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.nav-section {
+  padding: 6px 14px;
+}
+.nav-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 8px 6px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+  font-size: 13px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active { background: var(--bg-active); color: var(--accent); font-weight: 600; }
+.nav-item .nav-icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  border-radius: 4px;
+  background: var(--border);
+  color: var(--text-muted);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-icon {
+  background: var(--accent);
+  color: #fff;
+}
+.nav-item .nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.nav-badge.mvp { background: rgba(16,185,129,0.15); color: var(--success); }
+.nav-item-sub {
+  padding-left: 38px;
+  font-size: 12px;
+}
+
+/* Main Content */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.top-bar {
+  height: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  gap: 12px;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.breadcrumb span { color: var(--text-secondary); }
+.breadcrumb .sep { color: var(--text-muted); font-size: 10px; }
+.top-bar .version-badge {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: rgba(99,102,241,0.12);
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+.content-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── PAGE: IA TREE ─── */
+.page { display: none; padding: 32px; overflow-y: auto; flex: 1; }
+.page.active { display: block; }
+
+.page-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+.page-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+/* IA Tree */
+.ia-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ia-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.ia-node:hover {
+  border-color: var(--accent);
+  background: var(--bg-active);
+}
+.ia-node .ia-id {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 80px;
+}
+.ia-node .ia-name {
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+}
+.ia-node .ia-scope {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+.ia-scope.mvp { background: rgba(16,185,129,0.12); color: var(--success); }
+.ia-scope.done { background: rgba(99,102,241,0.12); color: var(--accent); }
+.ia-children {
+  margin-left: 32px;
+  border-left: 2px solid var(--border);
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+/* ─── PAGE: SCREEN LIST ─── */
+.screen-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-panel);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.screen-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+}
+.screen-table td {
+  padding: 10px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.screen-table tr { cursor: pointer; transition: background var(--transition); }
+.screen-table tbody tr:hover { background: var(--bg-hover); }
+.screen-table .status-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(16,185,129,0.12);
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* ─── PAGE: SCREEN SPEC ─── */
+.screen-spec-page {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+.screen-spec-page.active {
+  display: flex;
+}
+.spec-top-info {
+  padding: 20px 28px 0;
+  flex-shrink: 0;
+}
+.spec-screen-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.spec-screen-id {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  padding: 2px 8px;
+  background: var(--accent-bg);
+  border-radius: 4px;
+}
+.spec-screen-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.spec-screen-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  margin-bottom: 12px;
+}
+
+/* User Flow toggle */
+.flow-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: all var(--transition);
+}
+.flow-toggle:hover { border-color: var(--accent); }
+.flow-toggle .arrow { transition: transform var(--transition); font-size: 10px; color: var(--text-muted); }
+.flow-toggle .arrow.open { transform: rotate(90deg); }
+.flow-toggle span { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.flow-content {
+  display: none;
+  padding: 12px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  margin-top: -15px;
+  margin-bottom: 14px;
+}
+.flow-content.open { display: block; }
+.flow-steps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.flow-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--bg-sidebar);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.flow-step.current { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); font-weight: 600; }
+.flow-arrow { color: var(--text-muted); font-size: 10px; }
+
+/* Main spec body: 2-column */
+.spec-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+}
+
+/* Left: Wireframe */
+.wireframe-pane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--wire-dark-bg);
+}
+.wireframe-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sidebar);
+}
+.wireframe-toolbar .wf-tab {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.wireframe-toolbar .wf-tab:hover { color: var(--text-secondary); }
+.wireframe-toolbar .wf-tab.active { background: var(--accent-bg); color: var(--accent); }
+.wireframe-viewport {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.wireframe-viewport::-webkit-scrollbar { width: 4px; height: 4px; }
+.wireframe-viewport::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* Right: Spec Panel */
+.spec-panel {
+  width: 420px;
+  min-width: 420px;
+  display: flex;
+  flex-direction: column;
+  background: var(--spec-bg);
+  overflow: hidden;
+}
+.spec-panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--spec-border);
+  background: var(--spec-header);
+  flex-shrink: 0;
+}
+.spec-panel-tab {
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tab-inactive);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition);
+}
+.spec-panel-tab:hover { color: var(--text-dark-secondary); }
+.spec-panel-tab.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
+.spec-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+.spec-panel-content::-webkit-scrollbar { width: 4px; }
+.spec-panel-content::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
+
+/* Spec sections */
+.spec-section { margin-bottom: 20px; }
+.spec-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dark-secondary);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--spec-border);
+}
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.spec-table th {
+  text-align: left;
+  padding: 6px 8px;
+  font-weight: 600;
+  color: var(--text-dark-secondary);
+  background: #F8FAFC;
+  border: 1px solid var(--spec-border);
+  font-size: 11px;
+}
+.spec-table td {
+  padding: 6px 8px;
+  color: var(--text-dark);
+  border: 1px solid var(--spec-border);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.spec-table td code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: #F1F5F9;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+.spec-desc-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 1px 2px;
+}
+.desc-input { background: #EFF6FF; color: #2563EB; }
+.desc-btn { background: #F0FDF4; color: #16A34A; }
+.desc-text { background: #FEF3C7; color: #D97706; }
+.desc-link { background: #EDE9FE; color: #7C3AED; }
+.desc-check { background: #F0FDFA; color: #0D9488; }
+
+/* Interaction tab */
+.interaction-item {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--spec-border);
+  font-size: 12px;
+}
+.interaction-trigger {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--text-dark);
+  min-width: 140px;
+}
+.interaction-arrow {
+  color: var(--text-dark-secondary);
+  flex-shrink: 0;
+}
+.interaction-result {
+  color: var(--text-dark-secondary);
+}
+
+/* ─── WIREFRAME RENDERS ─── */
+/* SYS-001 Login */
+.wf-login-container {
+  width: 480px;
+  background: var(--wire-dark-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.wf-login-bg {
+  padding: 40px 0 30px;
+  text-align: center;
+  background: linear-gradient(135deg, #171B2D 0%, #1E2340 100%);
+}
+.wf-login-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+.wf-login-subtitle {
+  font-size: 11px;
+  color: #7B83A6;
+  margin-top: 4px;
+}
+.wf-login-card {
+  background: var(--wire-card);
+  margin: 0 32px 32px;
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-md);
+}
+.wf-login-card h3 {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 20px;
+}
+/* wf-groupware-badge removed - not in Pencil */
+.wf-input-group { margin-bottom: 10px; }
+.wf-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--wire-input-border);
+  border-radius: var(--radius-sm);
+  background: var(--wire-input-bg);
+  font-size: 13px;
+  color: var(--text-dark);
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.wf-input:focus { border-color: var(--accent); }
+.wf-input::placeholder { color: #9CA3AF; }
+.wf-login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0 18px;
+  font-size: 12px;
+}
+.wf-checkbox {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-dark-secondary);
+  cursor: pointer;
+}
+.wf-checkbox input { accent-color: var(--accent); }
+.wf-link {
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.wf-link:hover { color: var(--accent-hover); }
+.wf-btn-primary {
+  width: 100%;
+  padding: 11px;
+  background: var(--wire-btn);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition);
+  font-family: var(--font-body);
+}
+.wf-btn-primary:hover { background: var(--wire-btn-hover); }
+.wf-login-footer {
+  text-align: center;
+  padding: 16px 0;
+}
+.wf-login-footer .divider {
+  border-top: 1px solid #E5E7EB;
+  margin: 0 32px 12px;
+}
+.wf-login-footer p {
+  font-size: 11px;
+  color: #7B83A6;
+}
+.wf-copyright {
+  text-align: center;
+  padding: 8px 0 20px;
+  font-size: 10px;
+  color: #4B5263;
+}
+
+/* SYS-001.01 계정 신청 */
+.wf-register-container {
+  width: 480px;
+  background: linear-gradient(135deg, #171B2D 0%, #1E2340 100%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.wf-register-header {
+  padding: 30px 0 16px;
+  text-align: center;
+}
+.wf-register-card {
+  background: var(--wire-card);
+  margin: 0 32px 24px;
+  border-radius: var(--radius-md);
+  padding: 24px 22px;
+  box-shadow: var(--shadow-md);
+}
+.wf-back-link {
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  margin-bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.wf-register-card h3 {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+.wf-register-card .subtitle {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dark-secondary);
+  margin-bottom: 18px;
+}
+.wf-form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.wf-form-row .wf-input { flex: 1; }
+.wf-btn-outline {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid var(--wire-btn);
+  color: var(--wire-btn);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  transition: all var(--transition);
+}
+.wf-btn-outline:hover { background: var(--accent-bg); }
+.wf-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dark-secondary);
+  margin-bottom: 4px;
+  display: block;
+}
+.wf-label .required { color: var(--error); }
+.wf-field-group { margin-bottom: 10px; }
+.wf-input.disabled {
+  background: #E5E7EB;
+  color: #9CA3AF;
+  cursor: not-allowed;
+  border-color: #D1D5DB;
+}
+
+/* SYS-001-2FA */
+.wf-2fa-container {
+  width: 440px;
+  background: linear-gradient(135deg, #171B2D 0%, #1E2340 100%);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.wf-2fa-card {
+  background: var(--wire-card);
+  margin: 0 32px 24px;
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-md);
+}
+.wf-2fa-card h3 {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+}
+.wf-2fa-desc {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dark-secondary);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+.wf-phone-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.wf-phone-display .phone-num {
+  flex: 1;
+  padding: 9px 12px;
+  background: var(--wire-input-bg);
+  border: 1px solid var(--wire-input-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-dark);
+}
+.wf-btn-sm {
+  padding: 9px 14px;
+  background: #374151;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-body);
+}
+.wf-code-input-area { margin-top: 14px; }
+.wf-code-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+}
+.wf-code-label .required { color: var(--error); margin-left: 2px; }
+.wf-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wf-code-row .wf-input { flex: 1; }
+.wf-timer {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--error);
+  min-width: 40px;
+}
+.wf-btn-disabled {
+  width: 100%;
+  padding: 11px;
+  background: #D1D5DB;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: not-allowed;
+  margin-top: 16px;
+  font-family: var(--font-body);
+}
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.toast {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  animation: toast-in 0.3s ease, toast-out 0.3s ease 2.7s forwards;
+  white-space: nowrap;
+}
+.toast.success { background: var(--success); }
+.toast.error { background: var(--error); }
+.toast.info { background: var(--info); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toast-out { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in 0.15s ease;
+}
+.modal-card {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 24px;
+  width: 380px;
+  box-shadow: var(--shadow-lg);
+}
+.modal-card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+.modal-card p {
+  font-size: 13px;
+  color: var(--text-dark-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.modal-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+  border: 1px solid var(--wire-input-border);
+  background: #fff;
+  color: var(--text-dark-secondary);
+  transition: all var(--transition);
+}
+.modal-btn:hover { background: #F3F4F6; }
+.modal-btn.primary {
+  background: var(--wire-btn);
+  color: #fff;
+  border-color: var(--wire-btn);
+}
+.modal-btn.primary:hover { background: var(--wire-btn-hover); }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* 2FA State tabs */
+.state-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 8px 14px;
+  flex-wrap: wrap;
+}
+.state-tab {
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: transparent;
+  transition: all var(--transition);
+}
+.state-tab:hover { border-color: var(--text-secondary); color: var(--text-secondary); }
+.state-tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+/* Spec panel toggle */
+.spec-panel-toggle {
+  position: absolute;
+  right: 420px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 48px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--text-muted);
+  z-index: 10;
+}
+
+/* Responsive for spec panel */
+.spec-body { position: relative; }
+
+html, body { height: 100%; overflow: hidden; }
+.screen-spec-page { display: none; flex: 1; min-height: 0; flex-direction: column; }
+.screen-spec-page.active { display: flex; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>CLM 기획서</h1>
+      <div class="project-badge"><span>●</span> 시스템운영관리포털 (SYS)</div>
+    </div>
+    <div class="sidebar-nav">
+
+      <div class="nav-section">
+        <div class="nav-section-title">구조</div>
+        <div class="nav-item" onclick="location.href='../index.html#ia'">
+          <span class="nav-icon">IA</span> IA 구조도
+        </div>
+        <div class="nav-item" onclick="location.href='../index.html#screens'">
+          <span class="nav-icon">목</span> 화면 목록
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">PAGES</div>
+        <div class="nav-item" onclick="location.href='../index.html#policy'">
+          <span class="nav-icon">📋</span> 공통 정책
+        </div>
+        <div class="nav-item" onclick="location.href='../index.html#changelog'">
+          <span class="nav-icon">📝</span> 변경 이력
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-001 로그인</div>
+        <div class="nav-item" id="nav-sys001" onclick="showScreen('sys001')">
+          <span class="nav-icon">01</span> 로그인
+          <span class="nav-badge mvp">MVP</span>
+        </div>
+        <div class="nav-item nav-item-sub" id="nav-sys001_01" onclick="showScreen('sys001_01')">
+          <span class="nav-icon">▸</span> 사용 신청
+          <span class="nav-badge mvp">MVP</span>
+        </div>
+        <div class="nav-item nav-item-sub" id="nav-sys001_2fa" onclick="showScreen('sys001_2fa')">
+          <span class="nav-icon">▸</span> 2단계 인증
+          <span class="nav-badge mvp">MVP</span>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">SYS-002 대시보드</div>
+        <div class="nav-item" onclick="location.href='sys-002.html'">
+          <span class="nav-icon">01</span> 대시보드
+          <span class="nav-badge wip">작업중</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="top-bar">
+      <div class="breadcrumb" id="breadcrumb">
+        <span>SYS</span><span class="sep">›</span><span id="bc-current">SYS-001 로그인</span>
+      </div>
+      <div class="version-badge">v24.9.1</div>
+    </div>
+
+    <div class="content-area" id="contentArea">
+      <!-- SCREEN: SYS-001 로그인 -->
+      <div class="screen-spec-page" id="screen-sys001">
+        <div class="spec-top-info">
+          <div class="spec-screen-header">
+            <span class="spec-screen-id">SYS-001</span>
+            <span class="spec-screen-title">로그인</span>
+          </div>
+          <div class="spec-screen-desc">시스템운영관리포털 접속을 위한 로그인 화면 · 슈퍼어드민·운영자 전용 · 내부 임직원 탭만 제공 · 사외 접속 시 2FA</div>
+          <div class="flow-toggle" onclick="toggleFlow(this)">
+            <span class="arrow">▸</span>
+            <span>User Flow</span>
+          </div>
+          <div class="flow-content">
+            <div class="flow-steps">
+              <span class="flow-step current">SYS-001 로그인</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step" onclick="showScreen('sys001_2fa')" style="cursor:pointer">SYS-001-2FA (사외)</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step">SYS-002 대시보드</span>
+            </div>
+            <div class="flow-steps" style="margin-top:8px">
+              <span class="flow-step current">SYS-001 로그인</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step" onclick="showScreen('sys001_01')" style="cursor:pointer">SYS-001.01 계정신청</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step current">SYS-001 로그인</span>
+            </div>
+          </div>
+        </div>
+        <div class="spec-body">
+          <!-- Wireframe -->
+          <div class="wireframe-pane">
+            <div class="wireframe-toolbar">
+              <div class="wf-tab active">PC</div>
+            </div>
+            <div class="wireframe-viewport">
+              <div class="wf-login-container" id="wf-login">
+                <div class="wf-login-bg">
+                  <div class="wf-login-title">CLM Admin</div>
+                  <div class="wf-login-subtitle">시스템운영관리포털</div>
+                </div>
+                <div class="wf-login-card">
+                  <h3>로그인</h3>
+                  <div class="wf-input-group">
+                    <input type="text" class="wf-input" placeholder="아이디" value="admin">
+                  </div>
+                  <div class="wf-input-group">
+                    <input type="password" class="wf-input" placeholder="비밀번호" value="password">
+                  </div>
+                  <div class="wf-login-options">
+                    <label class="wf-checkbox">
+                      <input type="checkbox" checked> 아이디 저장
+                    </label>
+                    <a class="wf-link" id="linkToRegister" style="cursor:pointer">계정신청</a>
+                  </div>
+                  <button class="wf-btn-primary" id="loginBtn">로그인</button>
+                </div>
+                <div class="wf-login-footer">
+                  <div class="divider"></div>
+                  <p>문의 : 02-2031-XXXX</p>
+                </div>
+                <div class="wf-copyright">© 2026 CLM(AdCampaigning). All rights reserved.</div>
+              </div>
+            </div>
+          </div>
+          <!-- Spec Panel -->
+          <div class="spec-panel">
+            <div class="spec-panel-tabs">
+              <div class="spec-panel-tab active" onclick="switchSpecTab(this,'spec')">스펙</div>
+              <div class="spec-panel-tab" onclick="switchSpecTab(this,'interaction')">인터랙션</div>
+              <div class="spec-panel-tab" onclick="switchSpecTab(this,'history')">변경이력</div>
+            </div>
+            <div class="spec-panel-content" id="sys001-spec">
+              <div class="spec-section">
+                <div class="spec-section-title">개요</div>
+                <p style="font-size:12px;color:var(--text-dark-secondary);line-height:1.6">시스템운영관리포털 접속을 위한 로그인 화면.<br>슈퍼어드민·운영자 전용. 내부 임직원(그룹웨어 계정) 탭만 제공.<br>사외 접속 시 2FA(휴대폰 점유 인증) 적용.</p>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">UI 구성요소</div>
+                <table class="spec-table">
+                  <tr><th>#</th><th>요소</th><th>역할</th></tr>
+                  <tr><td>1</td><td><span class="spec-desc-tag desc-text">서비스 타이틀</span></td><td>CLM Admin — 포털 식별</td></tr>
+                  <tr><td>2</td><td><span class="spec-desc-tag desc-text">서브타이틀</span></td><td>시스템운영관리포털</td></tr>
+                  <tr><td>3</td><td><span class="spec-desc-tag desc-input">아이디 인풋</span></td><td>그룹웨어 아이디 입력</td></tr>
+                  <tr><td>4</td><td><span class="spec-desc-tag desc-input">비밀번호 인풋</span></td><td>비밀번호 입력 (마스킹)</td></tr>
+                  <tr><td>5</td><td><span class="spec-desc-tag desc-check">아이디 저장</span> + <span class="spec-desc-tag desc-link">계정신청 링크</span></td><td>아이디 기억 / SYS-001.01 이동</td></tr>
+                  <tr><td>6</td><td><span class="spec-desc-tag desc-btn">로그인 버튼</span></td><td>로그인 실행</td></tr>
+                  <tr><td>7</td><td><span class="spec-desc-tag desc-text">구분선 + 문의전화</span></td><td>하단 문의처</td></tr>
+                  <tr><td>8</td><td><span class="spec-desc-tag desc-text">Copyright</span></td><td>하단 저작권</td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">상태값</div>
+                <table class="spec-table">
+                  <tr><th>상태</th><th>의미</th></tr>
+                  <tr><td>기본</td><td>정상 표시</td></tr>
+                  <tr><td>오류</td><td>아이디/비밀번호 불일치 — 오류 Toast 표시</td></tr>
+                  <tr><td>2FA 인증 대기</td><td>사외 접속 시 로그인 성공 후 휴대폰 인증 단계</td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">접근 대상</div>
+                <p style="font-size:12px;color:var(--text-dark-secondary)">슈퍼어드민, 시스템 운영자 (내부 임직원만)</p>
+              </div>
+            </div>
+            <div class="spec-panel-content" id="sys001-interaction" style="display:none">
+              <div class="interaction-item">
+                <span class="interaction-trigger">계정신청 링크 클릭</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">SYS-001.01 사용 신청 화면 이동</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">로그인 버튼 클릭</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">검증 성공 → SYS-002 대시보드 이동<br>검증 실패 → 오류 Toast 표시</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">사외 접속 + 로그인 성공</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">2FA 휴대폰 점유 인증 단계 전환</span>
+              </div>
+              <div style="margin-top:20px">
+                <div class="spec-section-title">Toast 알림</div>
+                <table class="spec-table">
+                  <tr><th>상황</th><th>유형</th><th>메시지</th></tr>
+                  <tr><td>아이디/비밀번호 불일치</td><td style="color:var(--error)">오류</td><td>아이디 또는 비밀번호를 확인해주세요.</td></tr>
+                  <tr><td>아이디 미입력</td><td style="color:var(--error)">오류</td><td>아이디를 입력해주세요.</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="spec-panel-content" id="sys001-history" style="display:none">
+              <table class="spec-table">
+                <tr><th>날짜</th><th>버전</th><th>내용</th></tr>
+                <tr><td>2026-04-09</td><td>v24.0</td><td>최초 확정</td></tr>
+                <tr><td>2026-04-24</td><td>v24.9.1</td><td>UI 구성요소 Pencil 기준 수정 — 그룹웨어 사용자 체크 표시 제거</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN: SYS-001.01 사용 신청 -->
+      <div class="screen-spec-page" id="screen-sys001_01">
+        <div class="spec-top-info">
+          <div class="spec-screen-header">
+            <span class="spec-screen-id">SYS-001.01</span>
+            <span class="spec-screen-title">사용 신청 (임직원 전용)</span>
+          </div>
+          <div class="spec-screen-desc">임직원 그룹웨어 계정 기반 사용 신청 · 단일 화면에서 아이디 조회 + 정보 입력 폼 표시</div>
+          <div class="flow-toggle" onclick="toggleFlow(this)">
+            <span class="arrow">▸</span>
+            <span>User Flow</span>
+          </div>
+          <div class="flow-content">
+            <div class="flow-steps">
+              <span class="flow-step" onclick="showScreen('sys001')" style="cursor:pointer">SYS-001 로그인</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step current">SYS-001.01 계정신청</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step">승인 대기</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step" onclick="showScreen('sys001')" style="cursor:pointer">SYS-001 로그인</span>
+            </div>
+          </div>
+        </div>
+        <div class="spec-body">
+          <div class="wireframe-pane">
+            <div class="wireframe-toolbar">
+              <div class="wf-tab active">PC</div>
+            </div>
+            <div class="wireframe-viewport">
+              <div class="wf-register-container">
+                <div class="wf-register-header">
+                  <div class="wf-login-title" style="font-size:18px">CLM Admin</div>
+                  <div class="wf-login-subtitle">시스템운영관리포털</div>
+                </div>
+                <div class="wf-register-card">
+                  <div class="wf-back-link" id="backToLogin" style="cursor:pointer">← 로그인 화면</div>
+                  <h3>계정 신청</h3>
+                  <p class="subtitle">시스템운영관리포털</p>
+                  <div class="wf-field-group">
+                    <label class="wf-label"><span class="required">*</span> 임직원 아이디</label>
+                    <div class="wf-form-row">
+                      <input type="text" class="wf-input" placeholder="그룹웨어 아이디 입력" id="empIdInput">
+                      <button class="wf-btn-outline" id="empSearchBtn">조회</button>
+                    </div>
+                  </div>
+                  <div id="registerFields">
+                    <div class="wf-field-group">
+                      <label class="wf-label"><span class="required">*</span> 이름</label>
+                      <input type="text" class="wf-input disabled" disabled placeholder="" id="empName">
+                    </div>
+                    <div class="wf-field-group">
+                      <label class="wf-label"><span class="required">*</span> 회사명</label>
+                      <input type="text" class="wf-input disabled" disabled id="empCompany">
+                    </div>
+                    <div class="wf-field-group">
+                      <label class="wf-label"><span class="required">*</span> 부서명</label>
+                      <input type="text" class="wf-input disabled" disabled id="empDept">
+                    </div>
+                    <div class="wf-field-group">
+                      <label class="wf-label"><span class="required">*</span> 직책</label>
+                      <input type="text" class="wf-input disabled" disabled id="empPosition">
+                    </div>
+                    <div class="wf-field-group">
+                      <label class="wf-label">이메일</label>
+                      <input type="text" class="wf-input disabled" disabled id="empEmail">
+                    </div>
+                    <div class="wf-field-group">
+                      <label class="wf-label">휴대폰</label>
+                      <input type="text" class="wf-input disabled" disabled id="empPhone">
+                    </div>
+                    <div class="wf-field-group">
+                      <label class="wf-label">회사전화</label>
+                      <input type="text" class="wf-input disabled" disabled id="empTel">
+                    </div>
+                  </div>
+                  <button class="wf-btn-primary" id="registerBtn" style="margin-top:16px;opacity:0.5;cursor:not-allowed" disabled>계정신청</button>
+                </div>
+                <div class="wf-login-footer">
+                  <div class="divider"></div>
+                  <p>문의 : 02-2031-XXXX</p>
+                </div>
+                <div class="wf-copyright">© 2026 CLM(AdCampaigning). All rights reserved.</div>
+              </div>
+            </div>
+          </div>
+          <div class="spec-panel">
+            <div class="spec-panel-tabs">
+              <div class="spec-panel-tab active" onclick="switchSpecTab(this,'spec')">스펙</div>
+              <div class="spec-panel-tab" onclick="switchSpecTab(this,'interaction')">인터랙션</div>
+              <div class="spec-panel-tab" onclick="switchSpecTab(this,'history')">변경이력</div>
+            </div>
+            <div class="spec-panel-content" id="sys001_01-spec">
+              <div class="spec-section">
+                <div class="spec-section-title">UI 구성요소</div>
+                <table class="spec-table">
+                  <tr><th>#</th><th>요소</th><th>역할</th></tr>
+                  <tr><td>1</td><td><span class="spec-desc-tag desc-link">뒤로가기 링크</span></td><td>SYS-001 복귀</td></tr>
+                  <tr><td>2</td><td><span class="spec-desc-tag desc-text">계정 신청 타이틀</span></td><td>화면 식별</td></tr>
+                  <tr><td>3</td><td><span class="spec-desc-tag desc-input">임직원 아이디</span> + <span class="spec-desc-tag desc-btn">조회</span></td><td>그룹웨어 아이디 조회</td></tr>
+                  <tr><td>4~7</td><td><span class="spec-desc-tag desc-input">이름/회사명/부서명/직책</span></td><td>조회 시 자동입력 (disabled)</td></tr>
+                  <tr><td>8~10</td><td><span class="spec-desc-tag desc-input">이메일/휴대폰/회사전화</span></td><td>자동입력 (disabled)</td></tr>
+                  <tr><td>11</td><td><span class="spec-desc-tag desc-btn">계정신청 버튼</span></td><td>조회 전 비활성</td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">상태값</div>
+                <table class="spec-table">
+                  <tr><th>상태</th><th>의미</th></tr>
+                  <tr><td>조회 전</td><td>하위 폼 전체 disabled / 계정신청 버튼 비활성</td></tr>
+                  <tr><td>조회 성공</td><td>하위 필드 자동입력 / 계정신청 버튼 활성화</td></tr>
+                  <tr><td>조회 실패</td><td>오류 Toast / 하위 필드 계속 disabled</td></tr>
+                  <tr><td>신청 완료</td><td>완료 Toast → SYS-001 복귀</td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">접근 대상</div>
+                <p style="font-size:12px;color:var(--text-dark-secondary)">비로그인 사용자 (SYS-001 진입 후)</p>
+              </div>
+            </div>
+            <div class="spec-panel-content" id="sys001_01-interaction" style="display:none">
+              <div class="interaction-item">
+                <span class="interaction-trigger">[조회] 클릭 (ID 미입력)</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">오류 Toast "임직원 아이디를 입력해주세요."</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">[조회] 클릭 (결과 없음)</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">오류 Toast "등록된 임직원 정보가 없습니다."</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">[조회] 클릭 (성공)</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">확인 Modal → [확인] 시 그룹웨어 정보 자동입력<br>계정신청 버튼 활성화</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">[계정신청] 클릭</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">성공 Toast → SYS-001 복귀</span>
+              </div>
+              <div style="margin-top:20px">
+                <div class="spec-section-title">Toast 알림</div>
+                <table class="spec-table">
+                  <tr><th>상황</th><th>유형</th><th>메시지</th></tr>
+                  <tr><td>ID 미입력</td><td style="color:var(--error)">오류</td><td>임직원 아이디를 입력해주세요.</td></tr>
+                  <tr><td>조회 결과 없음</td><td style="color:var(--error)">오류</td><td>등록된 임직원 정보가 없습니다.</td></tr>
+                  <tr><td>신청 완료</td><td style="color:var(--success)">성공</td><td>계정 신청이 완료되었습니다.</td></tr>
+                </table>
+              </div>
+              <div style="margin-top:20px">
+                <div class="spec-section-title">Modal</div>
+                <table class="spec-table">
+                  <tr><th>타이틀</th><th>본문</th><th>버튼</th></tr>
+                  <tr><td>그룹웨어 정보 연동</td><td>그룹웨어 정보를 연동하시겠습니까?</td><td>취소 / 확인</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="spec-panel-content" id="sys001_01-history" style="display:none">
+              <p style="font-size:12px;color:var(--text-dark-secondary)">변경 이력 없음 (최초 확정: 2026-04-09)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN: SYS-001-2FA -->
+      <div class="screen-spec-page" id="screen-sys001_2fa">
+        <div class="spec-top-info">
+          <div class="spec-screen-header">
+            <span class="spec-screen-id">SYS-001-2FA</span>
+            <span class="spec-screen-title">2단계 인증</span>
+          </div>
+          <div class="spec-screen-desc">사외망 접속 시 로그인 성공 후 알림톡/SMS 기반 인증번호 입력 · 4종 상태 화면</div>
+          <div class="flow-toggle" id="flowToggle2fa">
+            <span class="arrow">▸</span>
+            <span>User Flow</span>
+          </div>
+          <div class="flow-content" id="flowContent2fa" style="display:none">
+            <div class="flow-steps">
+              <span class="flow-step" id="flowBack2fa" style="cursor:pointer">SYS-001 로그인 (사외)</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step current">SYS-001-2FA</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-step">SYS-002 대시보드</span>
+            </div>
+          </div>
+        </div>
+        <div class="spec-body">
+          <!-- Wireframe -->
+          <div class="wireframe-pane">
+            <div class="wireframe-toolbar">
+              <div class="wf-tab active">PC</div>
+            </div>
+            <!-- 상태 탭 -->
+            <div style="display:flex;gap:4px;padding:8px 14px 0;flex-wrap:wrap">
+              <button id="tab2fa-0" style="padding:4px 10px;border-radius:14px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #6366F1;color:#6366F1;background:rgba(99,102,241,0.12);font-family:inherit">4-0 번호 미입력</button>
+              <button id="tab2fa-1" style="padding:4px 10px;border-radius:14px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #2A2D3A;color:#6B7280;background:transparent;font-family:inherit">4-1 초기</button>
+              <button id="tab2fa-2" style="padding:4px 10px;border-radius:14px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #2A2D3A;color:#6B7280;background:transparent;font-family:inherit">4-2 발송됨</button>
+              <button id="tab2fa-3" style="padding:4px 10px;border-radius:14px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid #2A2D3A;color:#6B7280;background:transparent;font-family:inherit">4-3 입력중</button>
+            </div>
+            <!-- 흐름 안내 -->
+            <div style="display:flex;align-items:center;gap:4px;padding:6px 14px 6px;flex-wrap:wrap">
+              <span style="font-size:10px;color:#6B7280">흐름:</span>
+              <span style="font-size:10px;color:#9CA3AF;padding:2px 6px;border-radius:8px;border:1px solid #2A2D3A">4-0</span>
+              <span style="font-size:9px;color:#6B7280">→</span>
+              <span style="font-size:10px;color:#9CA3AF;padding:2px 6px;border-radius:8px;border:1px solid #2A2D3A">4-1</span>
+              <span style="font-size:9px;color:#6B7280">→ [인증번호 받기] →</span>
+              <span style="font-size:10px;color:#9CA3AF;padding:2px 6px;border-radius:8px;border:1px solid #2A2D3A">4-2</span>
+              <span style="font-size:9px;color:#6B7280">→ 입력 →</span>
+              <span style="font-size:10px;color:#9CA3AF;padding:2px 6px;border-radius:8px;border:1px solid #2A2D3A">4-3</span>
+              <span style="font-size:9px;color:#6B7280">→ [인증하기]</span>
+            </div>
+            <!-- 와이어프레임 뷰포트: flex centering 제거, overflow auto만 -->
+            <div style="flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:24px;background:#1A1D2E">
+
+              <!-- STATE 0: 번호 미입력 -->
+              <div id="s2fa-0" style="width:440px;background:linear-gradient(135deg,#171B2D,#1E2340);border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
+                <div style="padding:28px 0 16px;text-align:center">
+                  <div style="font-size:18px;font-weight:800;color:#fff">CLM Admin</div>
+                  <div style="font-size:11px;color:#7B83A6;margin-top:4px">시스템운영관리포털</div>
+                </div>
+                <div style="background:#F8F9FB;margin:0 32px 24px;border-radius:10px;padding:28px 24px;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
+                  <h3 style="text-align:center;font-size:16px;font-weight:700;color:#111827;margin-bottom:18px">2단계 인증</h3>
+                  <input id="phoneInput" type="text" placeholder="휴대폰 번호 입력" style="width:100%;padding:10px 12px;border:1px solid #D1D5DB;border-radius:6px;background:#F3F4F6;font-size:13px;color:#111827;font-family:inherit;margin-bottom:12px;box-sizing:border-box">
+                  <button id="btn-s0-send" style="width:100%;padding:11px;background:#4F6BED;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">인증번호 받기</button>
+                  <p style="text-align:center;font-size:12px;color:#6B7280;margin-top:14px;line-height:1.6">알림톡으로 발송된 인증번호를 입력해 주세요.<br>발송까지 최대 1분이 소요될 수 있습니다.<br>아이디로 등록된 휴대폰으로 발송됩니다.</p>
+                </div>
+                <p style="text-align:center;padding:8px 0 20px;font-size:10px;color:#4B5263">© 2026 CLM(AdCampaigning). All rights reserved.</p>
+              </div>
+
+              <!-- STATE 1: 초기 (번호 마스킹) -->
+              <div id="s2fa-1" style="display:none;width:440px;background:linear-gradient(135deg,#171B2D,#1E2340);border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
+                <div style="padding:28px 0 16px;text-align:center">
+                  <div style="font-size:18px;font-weight:800;color:#fff">CLM Admin</div>
+                  <div style="font-size:11px;color:#7B83A6;margin-top:4px">시스템운영관리포털</div>
+                </div>
+                <div style="background:#F8F9FB;margin:0 32px 24px;border-radius:10px;padding:28px 24px;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
+                  <h3 style="text-align:center;font-size:16px;font-weight:700;color:#111827;margin-bottom:18px">2단계 인증</h3>
+                  <div style="padding:10px 12px;border:1px solid #D1D5DB;border-radius:6px;background:#F3F4F6;font-size:13px;color:#111827;margin-bottom:12px">010-****-5678</div>
+                  <button id="btn-s1-send" style="width:100%;padding:11px;background:#4F6BED;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">인증번호 받기</button>
+                  <p style="text-align:center;font-size:12px;color:#6B7280;margin-top:14px;line-height:1.6">알림톡으로 발송된 인증번호를 입력해 주세요.<br>발송까지 최대 1분이 소요될 수 있습니다.<br>아이디로 등록된 휴대폰으로 발송됩니다.</p>
+                </div>
+                <p style="text-align:center;padding:8px 0 20px;font-size:10px;color:#4B5263">© 2026 CLM(AdCampaigning). All rights reserved.</p>
+              </div>
+
+              <!-- STATE 2: 발송됨 (인풋 + 타이머 + 버튼 비활성) -->
+              <div id="s2fa-2" style="display:none;width:440px;background:linear-gradient(135deg,#171B2D,#1E2340);border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
+                <div style="padding:28px 0 16px;text-align:center">
+                  <div style="font-size:18px;font-weight:800;color:#fff">CLM Admin</div>
+                  <div style="font-size:11px;color:#7B83A6;margin-top:4px">시스템운영관리포털</div>
+                </div>
+                <div style="background:#F8F9FB;margin:0 32px 24px;border-radius:10px;padding:28px 24px;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
+                  <h3 style="text-align:center;font-size:16px;font-weight:700;color:#111827;margin-bottom:12px">2단계 인증</h3>
+                  <p style="text-align:center;font-size:12px;color:#6B7280;margin-bottom:16px;line-height:1.5">알림톡으로 발송된 인증번호를 입력해 주세요.<br>발송까지 최대 1분이 소요될 수 있습니다.</p>
+                  <div style="display:flex;gap:8px;margin-bottom:14px">
+                    <div style="flex:1;padding:10px 12px;border:1px solid #D1D5DB;border-radius:6px;background:#F3F4F6;font-size:13px;color:#111827">010-****-5678</div>
+                    <button id="btn-s2-resend" style="padding:10px 14px;background:#374151;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">다시 받기</button>
+                  </div>
+                  <div style="margin-bottom:4px">
+                    <span style="font-size:11px;font-weight:600;color:#111827">인증번호 </span><span style="color:#EF4444;font-size:11px">*</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+                    <input id="codeInput2" type="text" maxlength="6" placeholder="인증번호 6자리 입력" style="flex:1;padding:10px 12px;border:1px solid #D1D5DB;border-radius:6px;background:#F3F4F6;font-size:13px;color:#111827;font-family:inherit;box-sizing:border-box">
+                    <span id="timer2fa" style="font-size:13px;font-weight:600;color:#EF4444;min-width:40px">2:59</span>
+                  </div>
+                  <button id="btn-s2-verify" style="width:100%;padding:11px;background:#D1D5DB;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:not-allowed;font-family:inherit">인증하기</button>
+                </div>
+                <p style="text-align:center;padding:8px 0 20px;font-size:10px;color:#4B5263">© 2026 CLM(AdCampaigning). All rights reserved.</p>
+              </div>
+
+              <!-- STATE 3: 입력중 (버튼 활성) -->
+              <div id="s2fa-3" style="display:none;width:440px;background:linear-gradient(135deg,#171B2D,#1E2340);border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.25)">
+                <div style="padding:28px 0 16px;text-align:center">
+                  <div style="font-size:18px;font-weight:800;color:#fff">CLM Admin</div>
+                  <div style="font-size:11px;color:#7B83A6;margin-top:4px">시스템운영관리포털</div>
+                </div>
+                <div style="background:#F8F9FB;margin:0 32px 24px;border-radius:10px;padding:28px 24px;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
+                  <h3 style="text-align:center;font-size:16px;font-weight:700;color:#111827;margin-bottom:12px">2단계 인증</h3>
+                  <p style="text-align:center;font-size:12px;color:#6B7280;margin-bottom:16px;line-height:1.5">알림톡으로 발송된 인증번호를 입력해 주세요.</p>
+                  <div style="display:flex;gap:8px;margin-bottom:14px">
+                    <div style="flex:1;padding:10px 12px;border:1px solid #D1D5DB;border-radius:6px;background:#F3F4F6;font-size:13px;color:#111827">010-****-5678</div>
+                    <button id="btn-s3-resend" style="padding:10px 14px;background:#374151;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">다시 받기</button>
+                  </div>
+                  <div style="margin-bottom:4px">
+                    <span style="font-size:11px;font-weight:600;color:#111827">인증번호 </span><span style="color:#EF4444;font-size:11px">*</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+                    <input type="text" value="123456" style="flex:1;padding:10px 12px;border:1px solid #D1D5DB;border-radius:6px;background:#F3F4F6;font-size:13px;color:#111827;font-family:inherit;box-sizing:border-box">
+                    <span style="font-size:13px;font-weight:600;color:#EF4444;min-width:40px">2:54</span>
+                  </div>
+                  <button id="btn-s3-verify" style="width:100%;padding:11px;background:#4F6BED;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">인증하기</button>
+                </div>
+                <p style="text-align:center;padding:8px 0 20px;font-size:10px;color:#4B5263">© 2026 CLM(AdCampaigning). All rights reserved.</p>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Spec Panel -->
+          <div class="spec-panel">
+            <div class="spec-panel-tabs">
+              <div class="spec-panel-tab active" id="specTab2fa-spec">스펙</div>
+              <div class="spec-panel-tab" id="specTab2fa-interaction">인터랙션</div>
+              <div class="spec-panel-tab" id="specTab2fa-history">변경이력</div>
+            </div>
+            <div class="spec-panel-content" id="sys001_2fa-spec">
+              <div class="spec-section">
+                <div class="spec-section-title">상태별 화면 (4종)</div>
+                <table class="spec-table">
+                  <tr><th>상태</th><th>Pencil Node</th><th>설명</th></tr>
+                  <tr><td>4-0</td><td><code>1cGDx</code></td><td>전화번호 입력 필드(빈) + [인증번호 받기]. 인증번호 영역 미노출</td></tr>
+                  <tr><td>4-1</td><td><code>rqAph</code></td><td>전화번호 마스킹(010-****-5678) + [인증번호 받기]. 인증번호 영역 미노출</td></tr>
+                  <tr><td>4-2</td><td><code>kEUaI</code></td><td>[다시 받기] + 인증번호 인풋(타이머 2:59) + [인증하기] 비활성</td></tr>
+                  <tr><td>4-3</td><td><code>900qU</code></td><td>인증번호 6자리 입력됨 + [인증하기] 활성(파란색)</td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">UI 구성요소</div>
+                <table class="spec-table">
+                  <tr><th>#</th><th>요소</th><th>역할</th></tr>
+                  <tr><td>1</td><td><span class="spec-desc-tag desc-text">서비스 타이틀</span></td><td>포털 식별</td></tr>
+                  <tr><td>2</td><td><span class="spec-desc-tag desc-text">카드 타이틀</span></td><td>2단계 인증</td></tr>
+                  <tr><td>3</td><td><span class="spec-desc-tag desc-text">설명 텍스트</span></td><td>안내 문구</td></tr>
+                  <tr><td>4</td><td><span class="spec-desc-tag desc-input">전화번호 표시</span></td><td>마스킹 읽기전용</td></tr>
+                  <tr><td>5</td><td><span class="spec-desc-tag desc-btn">인증번호 받기/다시 받기</span></td><td>발송/재발송</td></tr>
+                  <tr><td>6</td><td><span class="spec-desc-tag desc-input">인증번호 인풋</span> + 타이머</td><td>6자리 + 카운트다운</td></tr>
+                  <tr><td>7</td><td><span class="spec-desc-tag desc-btn">인증하기 버튼</span></td><td>미입력 시 비활성 / 입력 시 활성</td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">접근 대상</div>
+                <p style="font-size:12px;color:var(--text-dark-secondary)">사외망 접속 임직원 (SYS-001 로그인 성공 후 자동 진입)</p>
+              </div>
+            </div>
+            <div class="spec-panel-content" id="sys001_2fa-interaction" style="display:none">
+              <div class="interaction-item">
+                <span class="interaction-trigger">[인증번호 받기]</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">알림톡/SMS 발송 → 4-2 전환 + 타이머 시작(3:00)</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">[다시 받기]</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">재발송 → 타이머 리셋</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">[인증하기] (성공)</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">SYS-002 대시보드 이동</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">[인증하기] (실패)</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">오류 Toast "인증번호가 일치하지 않아요."</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">타이머 만료</span>
+                <span class="interaction-arrow">→</span>
+                <span class="interaction-result">인풋 비활성 + 만료 Toast → [다시 받기] 유도</span>
+              </div>
+              <div style="margin-top:20px">
+                <div class="spec-section-title">Toast 알림</div>
+                <table class="spec-table">
+                  <tr><th>상황</th><th>유형</th><th>메시지</th></tr>
+                  <tr><td>발송 성공</td><td style="color:var(--info)">정보</td><td>인증번호가 발송되었어요.</td></tr>
+                  <tr><td>타이머 만료</td><td style="color:var(--error)">오류</td><td>인증번호가 만료되었어요. 다시 받아주세요.</td></tr>
+                  <tr><td>인증 실패</td><td style="color:var(--error)">오류</td><td>인증번호가 일치하지 않아요.</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="spec-panel-content" id="sys001_2fa-history" style="display:none">
+              <p style="font-size:12px;color:var(--text-dark-secondary)">최초 확정: 2026-04-20</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ─── NAVIGATION ───
+function showPage(page) {
+  document.querySelectorAll('.page, .screen-spec-page').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  updateNav(page);
+  const bcNames = { ia:'IA 구조도', screens:'화면 목록', policy:'공통 정책', changelog:'변경 이력' };
+  updateBreadcrumb(bcNames[page] || page);
+}
+
+function showScreen(screen) {
+  document.querySelectorAll('.page, .screen-spec-page').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('screen-' + screen);
+  if (el) el.classList.add('active');
+  updateNav(screen);
+  const names = {
+    sys001: 'SYS-001 로그인',
+    sys001_01: 'SYS-001.01 사용 신청',
+    sys001_2fa: 'SYS-001-2FA 2단계 인증'
+  };
+  updateBreadcrumb(names[screen] || screen);
+}
+
+function updateNav(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const map = {
+    ia: 0, screens: 1, policy: 2, changelog: 3,
+    sys001: 4, sys001_01: 5, sys001_2fa: 6
+  };
+  const items = document.querySelectorAll('.nav-item');
+  if (map[id] !== undefined && items[map[id]]) {
+    items[map[id]].classList.add('active');
+  }
+}
+
+function updateBreadcrumb(text) {
+  document.getElementById('breadcrumb').innerHTML =
+    '<span>SYS</span><span class="sep">›</span><span>' + text + '</span>';
+}
+
+// ─── FLOW TOGGLE ───
+function toggleFlow(el) {
+  const arrow = el.querySelector('.arrow');
+  const content = el.nextElementSibling;
+  arrow.classList.toggle('open');
+  content.classList.toggle('open');
+}
+
+// ─── SPEC TABS ───
+function switchSpecTab(tab, type) {
+  const panel = tab.closest('.spec-panel');
+  panel.querySelectorAll('.spec-panel-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  panel.querySelectorAll('.spec-panel-content').forEach(c => c.style.display = 'none');
+  const screenId = panel.closest('.screen-spec-page').id.replace('screen-','');
+  const target = document.getElementById(screenId + '-' + type);
+  if (target) target.style.display = 'block';
+}
+
+// ─── 2FA 이벤트 (DOMContentLoaded 후 바인딩) ───
+function init2FA() {
+  const states = [0,1,2,3];
+  const panels = ['s2fa-0','s2fa-1','s2fa-2','s2fa-3'];
+  const tabs = ['tab2fa-0','tab2fa-1','tab2fa-2','tab2fa-3'];
+
+  function go2FA(n) {
+    panels.forEach((id,i) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = i === n ? 'block' : 'none';
+    });
+    tabs.forEach((id,i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (i === n) {
+        el.style.border = '1px solid #6366F1';
+        el.style.color = '#6366F1';
+        el.style.background = 'rgba(99,102,241,0.12)';
+      } else {
+        el.style.border = '1px solid #2A2D3A';
+        el.style.color = '#6B7280';
+        el.style.background = 'transparent';
+      }
+    });
+  }
+
+  // 탭 클릭
+  tabs.forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => go2FA(i));
+  });
+
+  // 4-0: [인증번호 받기] → 4-1
+  const btnS0 = document.getElementById('btn-s0-send');
+  if (btnS0) btnS0.addEventListener('click', () => { go2FA(1); });
+
+  // 4-1: [인증번호 받기] → 4-2 + toast
+  const btnS1 = document.getElementById('btn-s1-send');
+  if (btnS1) btnS1.addEventListener('click', () => {
+    go2FA(2);
+    showToast('info', '인증번호가 발송되었어요.');
+    startTimer();
+  });
+
+  // 4-2: 인풋 입력 시 버튼 활성화
+  const codeIn = document.getElementById('codeInput2');
+  const verifyBtn = document.getElementById('btn-s2-verify');
+  if (codeIn && verifyBtn) {
+    codeIn.addEventListener('input', () => {
+      if (codeIn.value.length >= 6) {
+        verifyBtn.style.background = '#4F6BED';
+        verifyBtn.style.cursor = 'pointer';
+        verifyBtn.onclick = () => {
+          go2FA(3);
+        };
+      } else {
+        verifyBtn.style.background = '#D1D5DB';
+        verifyBtn.style.cursor = 'not-allowed';
+        verifyBtn.onclick = null;
+      }
+    });
+  }
+
+  // 4-2: [다시 받기]
+  const resendBtn2 = document.getElementById('btn-s2-resend');
+  if (resendBtn2) resendBtn2.addEventListener('click', () => {
+    showToast('info', '인증번호가 재발송되었어요.');
+    startTimer();
+  });
+
+  // 4-3: [인증하기]
+  const btnS3 = document.getElementById('btn-s3-verify');
+  if (btnS3) btnS3.addEventListener('click', () => {
+    showToast('success', '인증이 완료되었습니다. → SYS-002 대시보드 이동');
+  });
+
+  // 4-3: [다시 받기]
+  const resendBtn3 = document.getElementById('btn-s3-resend');
+  if (resendBtn3) resendBtn3.addEventListener('click', () => {
+    showToast('info', '인증번호가 재발송되었어요.');
+    go2FA(2);
+    startTimer();
+  });
+
+  // flow toggle
+  const flowToggle = document.getElementById('flowToggle2fa');
+  const flowContent = document.getElementById('flowContent2fa');
+  if (flowToggle && flowContent) {
+    flowToggle.addEventListener('click', () => {
+      const arrow = flowToggle.querySelector('.arrow');
+      const isOpen = flowContent.style.display !== 'none';
+      flowContent.style.display = isOpen ? 'none' : 'block';
+      if (arrow) arrow.classList.toggle('open', !isOpen);
+    });
+  }
+
+  // flow back
+  const flowBack = document.getElementById('flowBack2fa');
+  if (flowBack) flowBack.addEventListener('click', () => showScreen('sys001'));
+
+  // spec tabs
+  const specTabs = ['spec','interaction','history'];
+  specTabs.forEach(type => {
+    const tab = document.getElementById('specTab2fa-' + type);
+    if (!tab) return;
+    tab.addEventListener('click', () => {
+      specTabs.forEach(t => {
+        const el = document.getElementById('specTab2fa-' + t);
+        if (el) el.classList.remove('active');
+        const c = document.getElementById('sys001_2fa-' + t);
+        if (c) c.style.display = 'none';
+      });
+      tab.classList.add('active');
+      const target = document.getElementById('sys001_2fa-' + type);
+      if (target) target.style.display = 'block';
+    });
+  });
+}
+
+let timerInterval = null;
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  let total = 179;
+  const el = document.getElementById('timer2fa');
+  if (el) el.textContent = '2:59';
+  timerInterval = setInterval(() => {
+    if (!document.getElementById('timer2fa')) { clearInterval(timerInterval); return; }
+    total--;
+    if (total <= 0) {
+      clearInterval(timerInterval);
+      const el = document.getElementById('timer2fa');
+      if (el) el.textContent = '0:00';
+      const inp = document.getElementById('codeInput2');
+      if (inp) inp.disabled = true;
+      showToast('error', '인증번호가 만료되었어요. 다시 받아주세요.');
+      return;
+    }
+    const m = Math.floor(total/60);
+    const s = total % 60;
+    const el = document.getElementById('timer2fa');
+    if (el) el.textContent = m + ':' + String(s).padStart(2,'0');
+  }, 1000);
+}
+
+// ─── LOGIN SIMULATION ───
+function handleLogin() {
+  showToast('success', '로그인 성공 — SYS-002 대시보드 이동 (시뮬레이션)');
+}
+
+// ─── REGISTER SIMULATION ───
+function handleEmpSearch() {
+  const id = document.getElementById('empIdInput').value.trim();
+  if (!id) {
+    showToast('error', '임직원 아이디를 입력해주세요.');
+    return;
+  }
+  showModal('그룹웨어 정보 연동', '그룹웨어 정보를 연동하시겠습니까?', () => {
+    document.getElementById('empName').value = '오지혜';
+    document.getElementById('empCompany').value = '(주)중앙일보';
+    document.getElementById('empDept').value = '디지털미디어사업팀';
+    document.getElementById('empPosition').value = '과장';
+    document.getElementById('empEmail').value = 'jihye.oh@joongang.co.kr';
+    document.getElementById('empPhone').value = '010-1234-5678';
+    document.getElementById('empTel').value = '02-2031-1234';
+    const regBtn = document.getElementById('registerBtn');
+    regBtn.disabled = false;
+    regBtn.style.opacity = '1';
+    regBtn.style.cursor = 'pointer';
+    showToast('info', '그룹웨어 정보가 연동되었습니다.');
+  });
+}
+
+function handleRegister() {
+  showToast('success', '계정 신청이 완료되었습니다.');
+  setTimeout(function() { showScreen('sys001'); }, 1500);
+}
+
+// ─── CODE INPUT CHECK ───
+function checkCodeInput() {
+  const val = document.getElementById('codeInput').value;
+  const btn = document.getElementById('verifyBtn');
+  if (val.length >= 6) {
+    btn.className = 'wf-btn-primary';
+    btn.style.marginTop = '16px';
+    btn.style.cursor = 'pointer';
+    btn.onclick = () => showToast('success', '인증이 완료되었습니다.');
+  } else {
+    btn.className = 'wf-btn-disabled';
+    btn.style.cursor = 'not-allowed';
+    btn.onclick = null;
+  }
+}
+
+// ─── TOAST ───
+function showToast(type, message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3200);
+}
+
+// ─── MODAL ───
+function showModal(title, body, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <h4>${title}</h4>
+      <p>${body}</p>
+      <div class="modal-actions">
+        <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">취소</button>
+        <button class="modal-btn primary" id="modalConfirmBtn">확인</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('modalConfirmBtn').onclick = () => {
+    overlay.remove();
+    if (onConfirm) onConfirm();
+  };
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+
+// DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+  init2FA();
+  initLogin();
+  initRegister();
+});
+
+function initLogin() {
+  // 로그인 버튼
+  const btn = document.getElementById('loginBtn');
+  if (btn) btn.addEventListener('click', function() {
+    const id = document.querySelector('#wf-login input[type="text"]');
+    const pw = document.querySelector('#wf-login input[type="password"]');
+    if (!id || !id.value.trim()) { showToast('error','아이디를 입력해주세요.'); return; }
+    if (!pw || !pw.value.trim()) { showToast('error','비밀번호를 입력해주세요.'); return; }
+    showToast('success','로그인 성공 → SYS-002 대시보드 이동 (시뮬레이션)');
+  });
+  // 계정신청 링크
+  const link = document.getElementById('linkToRegister');
+  if (link) link.addEventListener('click', function() { showScreen('sys001_01'); });
+}
+
+function initRegister() {
+  // 뒤로가기
+  const back = document.getElementById('backToLogin');
+  if (back) back.addEventListener('click', function() { showScreen('sys001'); });
+  // 조회 버튼
+  const searchBtn = document.getElementById('empSearchBtn');
+  if (searchBtn) searchBtn.addEventListener('click', handleEmpSearch);
+  // 계정신청 버튼
+  const regBtn = document.getElementById('registerBtn');
+  if (regBtn) regBtn.addEventListener('click', function() {
+    if (!regBtn.disabled) handleRegister();
+  });
+}
+</script>
+</body>
+</html>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+
+// ─── NAVIGATION ───
+function showPage(page) {
+  document.querySelectorAll('.page, .screen-spec-page').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  updateNav(page);
+  const bcNames = { ia:'IA 구조도', screens:'화면 목록', policy:'공통 정책', changelog:'변경 이력' };
+  updateBreadcrumb(bcNames[page] || page);
+}
+
+function showScreen(screen) {
+  document.querySelectorAll('.page, .screen-spec-page').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('screen-' + screen);
+  if (el) el.classList.add('active');
+  updateNav(screen);
+  const names = {
+    sys001: 'SYS-001 로그인',
+    sys001_01: 'SYS-001.01 사용 신청',
+    sys001_2fa: 'SYS-001-2FA 2단계 인증'
+  };
+  updateBreadcrumb(names[screen] || screen);
+}
+
+function updateNav(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const map = {
+    ia: 0, screens: 1, policy: 2, changelog: 3,
+    sys001: 4, sys001_01: 5, sys001_2fa: 6
+  };
+  const items = document.querySelectorAll('.nav-item');
+  if (map[id] !== undefined && items[map[id]]) {
+    items[map[id]].classList.add('active');
+  }
+}
+
+function updateBreadcrumb(text) {
+  document.getElementById('breadcrumb').innerHTML =
+    '<span>SYS</span><span class="sep">›</span><span>' + text + '</span>';
+}
+
+// ─── FLOW TOGGLE ───
+function toggleFlow(el) {
+  const arrow = el.querySelector('.arrow');
+  const content = el.nextElementSibling;
+  arrow.classList.toggle('open');
+  content.classList.toggle('open');
+}
+
+// ─── SPEC TABS ───
+function switchSpecTab(tab, type) {
+  const panel = tab.closest('.spec-panel');
+  panel.querySelectorAll('.spec-panel-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  panel.querySelectorAll('.spec-panel-content').forEach(c => c.style.display = 'none');
+  const screenId = panel.closest('.screen-spec-page').id.replace('screen-','');
+  const target = document.getElementById(screenId + '-' + type);
+  if (target) target.style.display = 'block';
+}
+
+// ─── 2FA 이벤트 (DOMContentLoaded 후 바인딩) ───
+function init2FA() {
+  const states = [0,1,2,3];
+  const panels = ['s2fa-0','s2fa-1','s2fa-2','s2fa-3'];
+  const tabs = ['tab2fa-0','tab2fa-1','tab2fa-2','tab2fa-3'];
+
+  function go2FA(n) {
+    panels.forEach((id,i) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = i === n ? 'block' : 'none';
+    });
+    tabs.forEach((id,i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (i === n) {
+        el.style.border = '1px solid #6366F1';
+        el.style.color = '#6366F1';
+        el.style.background = 'rgba(99,102,241,0.12)';
+      } else {
+        el.style.border = '1px solid #2A2D3A';
+        el.style.color = '#6B7280';
+        el.style.background = 'transparent';
+      }
+    });
+  }
+
+  // 탭 클릭
+  tabs.forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', () => go2FA(i));
+  });
+
+  // 4-0: [인증번호 받기] → 4-1
+  const btnS0 = document.getElementById('btn-s0-send');
+  if (btnS0) btnS0.addEventListener('click', () => { go2FA(1); });
+
+  // 4-1: [인증번호 받기] → 4-2 + toast
+  const btnS1 = document.getElementById('btn-s1-send');
+  if (btnS1) btnS1.addEventListener('click', () => {
+    go2FA(2);
+    showToast('info', '인증번호가 발송되었어요.');
+    startTimer();
+  });
+
+  // 4-2: 인풋 입력 시 버튼 활성화
+  const codeIn = document.getElementById('codeInput2');
+  const verifyBtn = document.getElementById('btn-s2-verify');
+  if (codeIn && verifyBtn) {
+    codeIn.addEventListener('input', () => {
+      if (codeIn.value.length >= 6) {
+        verifyBtn.style.background = '#4F6BED';
+        verifyBtn.style.cursor = 'pointer';
+        verifyBtn.onclick = () => {
+          go2FA(3);
+        };
+      } else {
+        verifyBtn.style.background = '#D1D5DB';
+        verifyBtn.style.cursor = 'not-allowed';
+        verifyBtn.onclick = null;
+      }
+    });
+  }
+
+  // 4-2: [다시 받기]
+  const resendBtn2 = document.getElementById('btn-s2-resend');
+  if (resendBtn2) resendBtn2.addEventListener('click', () => {
+    showToast('info', '인증번호가 재발송되었어요.');
+    startTimer();
+  });
+
+  // 4-3: [인증하기]
+  const btnS3 = document.getElementById('btn-s3-verify');
+  if (btnS3) btnS3.addEventListener('click', () => {
+    showToast('success', '인증이 완료되었습니다. → SYS-002 대시보드 이동');
+  });
+
+  // 4-3: [다시 받기]
+  const resendBtn3 = document.getElementById('btn-s3-resend');
+  if (resendBtn3) resendBtn3.addEventListener('click', () => {
+    showToast('info', '인증번호가 재발송되었어요.');
+    go2FA(2);
+    startTimer();
+  });
+
+  // flow toggle
+  const flowToggle = document.getElementById('flowToggle2fa');
+  const flowContent = document.getElementById('flowContent2fa');
+  if (flowToggle && flowContent) {
+    flowToggle.addEventListener('click', () => {
+      const arrow = flowToggle.querySelector('.arrow');
+      const isOpen = flowContent.style.display !== 'none';
+      flowContent.style.display = isOpen ? 'none' : 'block';
+      if (arrow) arrow.classList.toggle('open', !isOpen);
+    });
+  }
+
+  // flow back
+  const flowBack = document.getElementById('flowBack2fa');
+  if (flowBack) flowBack.addEventListener('click', () => showScreen('sys001'));
+
+  // spec tabs
+  const specTabs = ['spec','interaction','history'];
+  specTabs.forEach(type => {
+    const tab = document.getElementById('specTab2fa-' + type);
+    if (!tab) return;
+    tab.addEventListener('click', () => {
+      specTabs.forEach(t => {
+        const el = document.getElementById('specTab2fa-' + t);
+        if (el) el.classList.remove('active');
+        const c = document.getElementById('sys001_2fa-' + t);
+        if (c) c.style.display = 'none';
+      });
+      tab.classList.add('active');
+      const target = document.getElementById('sys001_2fa-' + type);
+      if (target) target.style.display = 'block';
+    });
+  });
+}
+
+let timerInterval = null;
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  let total = 179;
+  const el = document.getElementById('timer2fa');
+  if (el) el.textContent = '2:59';
+  timerInterval = setInterval(() => {
+    if (!document.getElementById('timer2fa')) { clearInterval(timerInterval); return; }
+    total--;
+    if (total <= 0) {
+      clearInterval(timerInterval);
+      const el = document.getElementById('timer2fa');
+      if (el) el.textContent = '0:00';
+      const inp = document.getElementById('codeInput2');
+      if (inp) inp.disabled = true;
+      showToast('error', '인증번호가 만료되었어요. 다시 받아주세요.');
+      return;
+    }
+    const m = Math.floor(total/60);
+    const s = total % 60;
+    const el = document.getElementById('timer2fa');
+    if (el) el.textContent = m + ':' + String(s).padStart(2,'0');
+  }, 1000);
+}
+
+// ─── LOGIN SIMULATION ───
+function handleLogin() {
+  showToast('success', '로그인 성공 — SYS-002 대시보드 이동 (시뮬레이션)');
+}
+
+// ─── REGISTER SIMULATION ───
+function handleEmpSearch() {
+  const id = document.getElementById('empIdInput').value.trim();
+  if (!id) {
+    showToast('error', '임직원 아이디를 입력해주세요.');
+    return;
+  }
+  showModal('그룹웨어 정보 연동', '그룹웨어 정보를 연동하시겠습니까?', () => {
+    document.getElementById('empName').value = '오지혜';
+    document.getElementById('empCompany').value = '(주)중앙일보';
+    document.getElementById('empDept').value = '디지털미디어사업팀';
+    document.getElementById('empPosition').value = '과장';
+    document.getElementById('empEmail').value = 'jihye.oh@joongang.co.kr';
+    document.getElementById('empPhone').value = '010-1234-5678';
+    document.getElementById('empTel').value = '02-2031-1234';
+    const regBtn = document.getElementById('registerBtn');
+    regBtn.disabled = false;
+    regBtn.style.opacity = '1';
+    regBtn.style.cursor = 'pointer';
+    showToast('info', '그룹웨어 정보가 연동되었습니다.');
+  });
+}
+
+function handleRegister() {
+  showToast('success', '계정 신청이 완료되었습니다.');
+  setTimeout(function() { showScreen('sys001'); }, 1500);
+}
+
+// ─── CODE INPUT CHECK ───
+function checkCodeInput() {
+  const val = document.getElementById('codeInput').value;
+  const btn = document.getElementById('verifyBtn');
+  if (val.length >= 6) {
+    btn.className = 'wf-btn-primary';
+    btn.style.marginTop = '16px';
+    btn.style.cursor = 'pointer';
+    btn.onclick = () => showToast('success', '인증이 완료되었습니다.');
+  } else {
+    btn.className = 'wf-btn-disabled';
+    btn.style.cursor = 'not-allowed';
+    btn.onclick = null;
+  }
+}
+
+// ─── TOAST ───
+function showToast(type, message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3200);
+}
+
+// ─── MODAL ───
+function showModal(title, body, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <h4>${title}</h4>
+      <p>${body}</p>
+      <div class="modal-actions">
+        <button class="modal-btn" onclick="this.closest('.modal-overlay').remove()">취소</button>
+        <button class="modal-btn primary" id="modalConfirmBtn">확인</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('modalConfirmBtn').onclick = () => {
+    overlay.remove();
+    if (onConfirm) onConfirm();
+  };
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+
+// DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+  init2FA();
+  initLogin();
+  initRegister();
+});
+
+function initLogin() {
+  // 로그인 버튼
+  const btn = document.getElementById('loginBtn');
+  if (btn) btn.addEventListener('click', function() {
+    const id = document.querySelector('#wf-login input[type="text"]');
+    const pw = document.querySelector('#wf-login input[type="password"]');
+    if (!id || !id.value.trim()) { showToast('error','아이디를 입력해주세요.'); return; }
+    if (!pw || !pw.value.trim()) { showToast('error','비밀번호를 입력해주세요.'); return; }
+    showToast('success','로그인 성공 → SYS-002 대시보드 이동 (시뮬레이션)');
+  });
+  // 계정신청 링크
+  const link = document.getElementById('linkToRegister');
+  if (link) link.addEventListener('click', function() { showScreen('sys001_01'); });
+}
+
+function initRegister() {
+  // 뒤로가기
+  const back = document.getElementById('backToLogin');
+  if (back) back.addEventListener('click', function() { showScreen('sys001'); });
+  // 조회 버튼
+  const searchBtn = document.getElementById('empSearchBtn');
+  if (searchBtn) searchBtn.addEventListener('click', handleEmpSearch);
+  // 계정신청 버튼
+  const regBtn = document.getElementById('registerBtn');
+  if (regBtn) regBtn.addEventListener('click', function() {
+    if (!regBtn.disabled) handleRegister();
+  });
+}
+
+
+function showScreen(screen) {
+  document.querySelectorAll('.screen-spec-page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('screen-' + screen);
+  if (el) el.classList.add('active');
+  const nav = document.getElementById('nav-' + screen);
+  if (nav) nav.classList.add('active');
+  const names = {
+    sys001: 'SYS-001 로그인',
+    sys001_01: 'SYS-001.01 사용 신청',
+    sys001_2fa: 'SYS-001-2FA 2단계 인증'
+  };
+  document.getElementById('bc-current').textContent = names[screen] || screen;
+  history.pushState(null, '', '#' + screen);
+}
+
+// URL hash로 진입 시 해당 화면으로
+window.addEventListener('load', function() {
+  const hash = location.hash.replace('#','');
+  if (hash) {
+    showScreen(hash);
+  } else {
+    showScreen('sys001');
+  }
+});
+</script>
+</body>
+</html>
