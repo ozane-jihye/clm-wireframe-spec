@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYS-004 사용자/권한 관리 — CLM 기획서</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.9/static/pretendard.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg-app: #0F1117;
+  --bg-sidebar: #161822;
+  --bg-panel: #1C1E2B;
+  --bg-hover: rgba(99,102,241,0.08);
+  --bg-active: rgba(99,102,241,0.14);
+  --border: #2A2D3A;
+  --text-primary: #F1F2F6;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --accent: #6366F1;
+  --accent-bg: rgba(99,102,241,0.12);
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --font-body: 'Pretendard', -apple-system, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+  --spec-bg: #FFFFFF;
+  --spec-border: #E2E8F0;
+  --spec-header: #F8FAFC;
+  --tab-active: #6366F1;
+  --tab-inactive: #94A3B8;
+  --text-dark: #111827;
+  --text-dark-secondary: #4B5563;
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.25);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; font-family: var(--font-body); background: var(--bg-app); color: var(--text-primary); font-size: 14px; }
+
+/* Layout */
+.app { display:flex; height:100vh; }
+.sidebar { width:240px; min-width:240px; background:var(--bg-sidebar); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+.sidebar-header { padding:18px 16px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.sidebar-header h1 { font-size:14px; font-weight:700; }
+.project-badge { margin-top:5px; font-size:11px; color:var(--accent); display:flex; align-items:center; gap:5px; }
+.sidebar-nav { flex:1; overflow-y:auto; padding:8px 0; }
+.sidebar-nav::-webkit-scrollbar { width:3px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.nav-section-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); padding:10px 16px 4px; }
+.nav-item { display:flex; align-items:center; gap:8px; padding:7px 16px; font-size:12px; color:var(--text-secondary); cursor:pointer; transition:all var(--transition); position:relative; }
+.nav-item:hover { background:var(--bg-hover); color:var(--text-primary); }
+.nav-item.active { background:var(--bg-active); color:var(--accent); font-weight:600; }
+.nav-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--accent); border-radius:0 2px 2px 0; }
+.nav-item-sub { padding-left:32px; font-size:11px; }
+.nav-icon { font-size:10px; font-weight:700; color:var(--text-muted); min-width:20px; font-family:var(--font-mono); }
+.nav-badge { margin-left:auto; font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px; flex-shrink:0; }
+.nav-badge.mvp { background:rgba(16,185,129,0.15); color:#10B981; }
+.nav-badge.done { background:rgba(99,102,241,0.15); color:var(--accent); }
+.nav-badge.wip { background:rgba(245,158,11,0.15); color:var(--warning); }
+.nav-badge.todo { background:rgba(107,114,128,0.15); color:var(--text-muted); }
+
+.main { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
+.top-bar { height:44px; border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0; background:var(--bg-sidebar); }
+.breadcrumb { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); flex:1; }
+.breadcrumb .sep { color:var(--border); }
+.version-badge { font-size:10px; font-weight:700; font-family:var(--font-mono); color:var(--text-muted); background:var(--bg-panel); padding:3px 8px; border-radius:4px; border:1px solid var(--border); }
+
+/* Screen */
+.screen-spec-page { display:none; flex:1; min-height:0; flex-direction:column; }
+.screen-spec-page.active { display:flex; }
+.spec-top-info { padding:20px 28px 0; flex-shrink:0; }
+.spec-screen-header { display:flex; align-items:center; gap:12px; margin-bottom:4px; }
+.spec-screen-id { font-family:var(--font-mono); font-size:12px; color:var(--accent); font-weight:700; padding:2px 8px; background:var(--accent-bg); border-radius:4px; }
+.spec-screen-title { font-size:18px; font-weight:800; letter-spacing:-0.02em; }
+.spec-screen-desc { font-size:12px; color:var(--text-secondary); margin-top:2px; margin-bottom:12px; }
+
+/* Spec body */
+.spec-body { flex:1; min-height:0; display:flex; overflow:hidden; border-top:1px solid var(--border); }
+.wireframe-pane { flex:1; min-width:0; min-height:0; display:flex; flex-direction:column; border-right:1px solid var(--border); background:#1A1D2E; }
+.wireframe-toolbar { display:flex; align-items:center; gap:2px; padding:8px 14px; border-bottom:1px solid var(--border); background:var(--bg-sidebar); }
+.wf-tab { padding:4px 12px; border-radius:6px; font-size:11px; font-weight:600; color:var(--text-muted); cursor:pointer; }
+.wf-tab.active { background:var(--accent-bg); color:var(--accent); }
+.wireframe-viewport { flex:1; overflow:auto; padding:20px; }
+
+/* Spec panel */
+.spec-panel { width:420px; min-width:420px; display:flex; flex-direction:column; background:var(--spec-bg); overflow:hidden; }
+.spec-panel-tabs { display:flex; border-bottom:1px solid var(--spec-border); background:var(--spec-header); flex-shrink:0; }
+.spec-panel-tab { flex:1; padding:10px 0; text-align:center; font-size:12px; font-weight:600; color:var(--tab-inactive); cursor:pointer; border-bottom:2px solid transparent; transition:all var(--transition); }
+.spec-panel-tab.active { color:var(--tab-active); border-bottom-color:var(--tab-active); }
+.spec-panel-content { flex:1; overflow-y:auto; padding:16px 18px; }
+.spec-panel-content::-webkit-scrollbar { width:4px; }
+.spec-panel-content::-webkit-scrollbar-thumb { background:#D1D5DB; border-radius:4px; }
+.spec-section { margin-bottom:20px; }
+.spec-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dark-secondary); margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--spec-border); }
+.spec-table { width:100%; border-collapse:collapse; font-size:12px; }
+.spec-table th { text-align:left; padding:6px 8px; font-weight:600; color:var(--text-dark-secondary); background:#F8FAFC; border:1px solid var(--spec-border); font-size:11px; }
+.spec-table td { padding:6px 8px; color:var(--text-dark); border:1px solid var(--spec-border); vertical-align:top; line-height:1.5; }
+.spec-table td code { font-family:var(--font-mono); font-size:11px; background:#F1F5F9; padding:1px 5px; border-radius:3px; color:var(--accent); }
+.spec-desc-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; margin:1px 2px; }
+.desc-input { background:#EFF6FF; color:#2563EB; }
+.desc-btn { background:#F0FDF4; color:#16A34A; }
+.desc-text { background:#FEF3C7; color:#D97706; }
+.desc-select { background:#EDE9FE; color:#7C3AED; }
+.interaction-item { display:flex; gap:8px; padding:10px 0; border-bottom:1px solid var(--spec-border); font-size:12px; }
+.interaction-trigger { flex-shrink:0; font-weight:600; color:var(--text-dark); min-width:160px; }
+.interaction-result { color:var(--text-dark-secondary); }
+
+/* Toast */
+.toast-container { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:1000; display:flex; flex-direction:column; gap:8px; align-items:center; }
+.toast { padding:10px 20px; border-radius:6px; font-size:13px; font-weight:500; color:#fff; box-shadow:var(--shadow-md); animation:toast-in 0.3s ease, toast-out 0.3s ease 2.7s forwards; white-space:nowrap; }
+.toast.success { background:var(--success); }
+.toast.error { background:var(--error); }
+.toast.info { background:#3B82F6; }
+@keyframes toast-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes toast-out { from { opacity:1; } to { opacity:0; transform:translateY(-8px); } }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:900; display:flex; align-items:center; justify-content:center; }
+.modal-card { background:#fff; border-radius:10px; padding:24px; width:380px; box-shadow:var(--shadow-lg); }
+.modal-card h4 { font-size:15px; font-weight:700; color:var(--text-dark); margin-bottom:8px; }
+.modal-card p { font-size:13px; color:var(--text-dark-secondary); margin-bottom:20px; line-height:1.5; }
+.modal-actions { display:flex; justify-content:flex-end; gap:8px; }
+.modal-btn { padding:8px 18px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); border:1px solid #D1D5DB; background:#fff; color:var(--text-dark-secondary); transition:all var(--transition); }
+.modal-btn:hover { background:#F3F4F6; }
+.modal-btn.danger { background:#EF4444; color:#fff; border-color:#EF4444; }
+.modal-btn.danger:hover { background:#DC2626; }
+
+/* Slide Panel */
+.slide-panel { position:absolute; right:0; top:0; bottom:0; width:550px; background:#fff; border-left:1px solid #E5E7EB; box-shadow:-4px 0 16px rgba(0,0,0,0.1); display:flex; flex-direction:column; z-index:100; transform:translateX(100%); transition:transform 0.3s ease; }
+.slide-panel.open { transform:translateX(0); }
+.panel-header { display:flex; align-items:center; justify-content:space-between; padding:20px 28px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+.panel-header h3 { font-size:18px; font-weight:700; color:#111827; }
+.panel-close { font-size:20px; color:#6B7280; cursor:pointer; line-height:1; }
+.panel-body { flex:1; overflow-y:auto; }
+.panel-footer { display:flex; align-items:center; justify-content:flex-end; gap:12px; padding:16px 28px; border-top:1px solid #E5E7EB; flex-shrink:0; }
+.panel-btn { padding:10px 24px; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--font-body); }
+.panel-btn.cancel { background:#fff; border:1px solid #D5D7DE; color:#374151; }
+.panel-btn.confirm { background:#2F6FEB; border:none; color:#fff; }
+.form-row { display:flex; align-items:center; height:48px; border-bottom:1px solid #F3F4F6; padding:0 28px; gap:16px; }
+.form-label { font-size:13px; color:#6B7280; min-width:100px; font-weight:500; }
+.form-value { font-size:14px; color:#111827; flex:1; }
+.form-required { color:#EF4444; margin-left:2px; }
+.form-input { flex:1; height:32px; border:1px solid #D1D5DB; border-radius:6px; padding:0 10px; font-size:13px; font-family:var(--font-body); color:#111827; outline:none; }
+.form-input:focus { border-color:#2F6FEB; }
+.form-select { flex:1; height:32px; border:1px solid #D1D5DB; border-radius:6px; padding:0 10px; font-size:13px; font-family:var(--font-body); color:#111827; outline:none; background:#fff; }
+
+/* Wireframe — 사용자 관리 목록 */
+.wf-screen { background:#ECECF1; border-radius:8px; min-height:900px; display:flex; flex-direction:column; gap:8px; padding:8px 12px; position:relative; overflow:hidden; }
+.wf-top-header { background:#F3F4F6; border-radius:6px; height:52px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; border-bottom:1px solid #DADDE3; flex-shrink:0; }
+.wf-breadcrumb { font-size:12px; color:#7A808D; }
+.wf-header-right { display:flex; gap:20px; font-size:14px; color:#3F4550; }
+.wf-page-header { background:#F3F4F6; border-radius:6px; height:64px; display:flex; align-items:center; padding:0 20px; border-bottom:1px solid #DADDE3; flex-shrink:0; }
+.wf-page-title { font-size:22px; font-weight:700; color:#2F3238; }
+.wf-filter-area { background:#F3F4F6; border-radius:6px; height:56px; display:flex; align-items:center; padding:0 20px; gap:12px; border-bottom:1px solid #DADDE3; flex-shrink:0; }
+.wf-filter-left { display:flex; gap:8px; }
+.wf-dd { height:36px; background:#fff; border:1px solid #D1D5DB; border-radius:6px; padding:0 8px; font-size:10px; color:#374151; display:flex; align-items:center; gap:4px; min-width:92px; justify-content:space-between; cursor:pointer; }
+.wf-filter-spacer { flex:1; }
+.wf-filter-right { display:flex; gap:8px; align-items:center; }
+.wf-search-input { height:36px; background:#fff; border:1px solid #D5D7DE; border-radius:6px; padding:0 12px; font-size:14px; color:#9CA3AF; width:240px; display:flex; align-items:center; }
+.wf-search-btn { height:36px; background:#646A76; border-radius:6px; padding:0 18px; font-size:14px; font-weight:600; color:#fff; display:flex; align-items:center; cursor:pointer; border:none; font-family:var(--font-body); }
+.wf-search-btn:hover { background:#4B5563; }
+.wf-table-area { background:#F9FAFB; border-radius:0 0 8px 8px; flex:1; padding:24px 28px; display:flex; flex-direction:column; gap:0; }
+.wf-action-row { display:flex; justify-content:flex-end; padding-bottom:12px; gap:8px; }
+.wf-action-btn { height:32px; padding:0 14px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-body); display:flex; align-items:center; gap:5px; }
+.wf-action-btn.primary { background:#2F6FEB; color:#fff; border:none; }
+.wf-action-btn.secondary { background:#fff; color:#374151; border:1px solid #D5D7DE; }
+.wf-action-btn.danger { background:#fff; color:#EF4444; border:1px solid #EF4444; }
+.wf-action-btn:hover { opacity:0.85; }
+.wf-table { background:#fff; border-radius:10px; border:1px solid #D4D8DE; overflow:hidden; }
+.wf-table-head { background:#EAEBEC; display:flex; height:46px; border-bottom:1px solid #D4D8DE; }
+.wf-th { display:flex; align-items:center; padding:0 16px; font-size:13px; font-weight:600; color:#374151; flex-shrink:0; }
+.wf-table-row { display:flex; height:52px; border-bottom:1px solid #E5E7EB; transition:background 0.15s; cursor:pointer; }
+.wf-table-row:hover { background:#F5F5FF; }
+.wf-table-row.selected { background:#EEF2FF; }
+.wf-table-row.warning { background:#FFFBEB; }
+.wf-table-row:last-child { border-bottom:none; }
+.wf-td { display:flex; align-items:center; padding:0 16px; font-size:14px; color:#111827; flex-shrink:0; }
+.wf-td.id-col { color:#374151; }
+.wf-badge { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:500; }
+.wf-badge.active { background:#ECFDF5; color:#059669; }
+.wf-badge.inactive { background:#FEF2F2; color:#EF4444; }
+.wf-badge.pending { background:#FFF7ED; color:#F59E0B; }
+.wf-badge-dot { width:6px; height:6px; border-radius:50%; }
+.wf-badge-dot.active { background:#059669; }
+.wf-badge-dot.inactive { background:#EF4444; }
+.wf-badge-dot.pending { background:#F59E0B; }
+.wf-pagination { display:flex; justify-content:flex-end; align-items:center; height:64px; padding:0 16px; background:#F9FAFB; }
+.wf-pg-btn { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:6px; font-size:13px; color:#6B7280; cursor:pointer; background:#F9FAFB; border:none; font-family:var(--font-body); }
+.wf-pg-btn.current { background:#E5E7EB; color:#5F636B; font-weight:600; border-radius:10px; }
+.wf-checkbox { width:16px; height:16px; border:1px solid #D1D5DB; border-radius:3px; background:#fff; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.wf-checkbox.checked { background:#2F6FEB; border-color:#2F6FEB; }
+.wf-col-check { width:48px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>CLM 기획서</h1>
+      <div class="project-badge">● 시스템운영관리포털 (SYS)</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-title">구조</div>
+      <div class="nav-item" onclick="location.href='../index.html'">
+        <span class="nav-icon">IA</span> IA 구조도
+      </div>
+
+      <div class="nav-section-title" style="margin-top:8px">SYS-001 로그인</div>
+      <div class="nav-item" onclick="location.href='sys-001.html#sys001'">
+        <span class="nav-icon">01</span> 로그인
+        <span class="nav-badge done">완료</span>
+      </div>
+
+      <div class="nav-section-title" style="margin-top:8px">SYS-004 사용자/권한 관리</div>
+      <div class="nav-item nav-item-sub active" id="nav-sys004_0101" onclick="showScreen('sys004_0101')">
+        <span class="nav-icon">01</span> 사용자 관리 (목록)
+        <span class="nav-badge mvp">MVP</span>
+      </div>
+      <div class="nav-item nav-item-sub" id="nav-sys004_0101_reg" onclick="showScreen('sys004_0101_reg')">
+        <span class="nav-icon">▸</span> 사용자 등록 (패널)
+        <span class="nav-badge mvp">MVP</span>
+      </div>
+      <div class="nav-item nav-item-sub" id="nav-sys004_0101_edit" onclick="showScreen('sys004_0101_edit')">
+        <span class="nav-icon">▸</span> 사용자 수정 (패널)
+        <span class="nav-badge mvp">MVP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="top-bar">
+      <div class="breadcrumb" id="breadcrumb">
+        <span>SYS</span><span class="sep">›</span>
+        <span>SYS-004 사용자/권한 관리</span><span class="sep">›</span>
+        <span id="bc-current">사용자 관리</span>
+      </div>
+      <div class="version-badge">v24.9.1</div>
+    </div>
+
+    <div style="flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden;">
+
+      <!-- SCREEN: 사용자 관리 목록 -->
+      <div class="screen-spec-page active" id="screen-sys004_0101">
+        <div class="spec-top-info">
+          <div class="spec-screen-header">
+            <span class="spec-screen-id">SYS-004.01.01</span>
+            <span class="spec-screen-title">사용자 관리</span>
+          </div>
+          <div class="spec-screen-desc">시스템운영관리포털 운영자 계정 목록 조회 · 등록/수정/상태변경/삭제 · 슈퍼어드민 전용</div>
+        </div>
+        <div class="spec-body">
+          <!-- Wireframe -->
+          <div class="wireframe-pane">
+            <div class="wireframe-toolbar">
+              <div class="wf-tab active">PC</div>
+            </div>
+            <div class="wireframe-viewport">
+              <div class="wf-screen" style="min-width:1200px;">
+                <!-- Top Header -->
+                <div class="wf-top-header">
+                  <div class="wf-breadcrumb">사용자/권한 관리 > 시스템 운영 관리 > 사용자 관리</div>
+                  <div class="wf-header-right">
+                    <span>알림</span><span>관리자</span><span>로그아웃</span>
+                  </div>
+                </div>
+                <!-- Page Header -->
+                <div class="wf-page-header">
+                  <div class="wf-page-title">사용자 관리</div>
+                </div>
+                <!-- Filter -->
+                <div class="wf-filter-area">
+                  <div class="wf-filter-left">
+                    <div class="wf-dd">상태 전체 <span style="font-size:10px;color:#6B7280">▾</span></div>
+                    <div class="wf-dd">역할 전체 <span style="font-size:10px;color:#6B7280">▾</span></div>
+                  </div>
+                  <div class="wf-filter-spacer"></div>
+                  <div class="wf-filter-right">
+                    <div class="wf-search-input">이름 또는 아이디 검색</div>
+                    <button class="wf-search-btn">검색</button>
+                  </div>
+                </div>
+                <!-- Table Area -->
+                <div class="wf-table-area">
+                  <div class="wf-action-row">
+                    <button class="wf-action-btn danger" id="btnDelete" onclick="openDeleteModal()">삭제</button>
+                    <button class="wf-action-btn primary" onclick="openPanel('reg')">+ 사용자 등록</button>
+                  </div>
+                  <div class="wf-table">
+                    <div class="wf-table-head">
+                      <div class="wf-th wf-col-check"><div class="wf-checkbox" id="allCheck" onclick="toggleAllCheck()"></div></div>
+                      <div class="wf-th" style="width:50px">No</div>
+                      <div class="wf-th" style="width:140px">아이디</div>
+                      <div class="wf-th" style="width:100px">이름</div>
+                      <div class="wf-th" style="width:120px">부서</div>
+                      <div class="wf-th" style="width:120px">역할</div>
+                      <div class="wf-th" style="width:120px">상태</div>
+                      <div class="wf-th" style="width:150px">최종 접속일</div>
+                    </div>
+                    <div id="tableBody">
+                      <!-- Rows injected by JS -->
+                    </div>
+                    <div class="wf-pagination">
+                      <div style="display:flex;gap:4px">
+                        <button class="wf-pg-btn">«</button>
+                        <button class="wf-pg-btn">‹</button>
+                        <button class="wf-pg-btn current">1</button>
+                        <button class="wf-pg-btn">2</button>
+                        <button class="wf-pg-btn">3</button>
+                        <button class="wf-pg-btn">4</button>
+                        <button class="wf-pg-btn">5</button>
+                        <button class="wf-pg-btn">›</button>
+                        <button class="wf-pg-btn">»</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Slide Panel (등록/수정/조회) -->
+                <div class="slide-panel" id="slidePanel">
+                  <div class="panel-header">
+                    <h3 id="panelTitle">사용자 등록</h3>
+                    <span class="panel-close" onclick="closePanel()">✕</span>
+                  </div>
+                  <div class="panel-body" id="panelBody"></div>
+                  <div class="panel-footer" id="panelFooter">
+                    <button class="panel-btn cancel" onclick="closePanel()">취소</button>
+                    <button class="panel-btn confirm" id="panelConfirmBtn">저장</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spec Panel -->
+          <div class="spec-panel">
+            <div class="spec-panel-tabs">
+              <div class="spec-panel-tab active" onclick="switchTab(this,'spec','sys004_0101')">스펙</div>
+              <div class="spec-panel-tab" onclick="switchTab(this,'interaction','sys004_0101')">인터랙션</div>
+              <div class="spec-panel-tab" onclick="switchTab(this,'history','sys004_0101')">변경이력</div>
+            </div>
+            <div class="spec-panel-content" id="sys004_0101-spec">
+              <div class="spec-section">
+                <div class="spec-section-title">화면 개요</div>
+                <table class="spec-table">
+                  <tr><td style="width:80px;background:#F8FAFC;font-weight:600;color:#4B5563">화면 ID</td><td>SYS-004.01.01</td></tr>
+                  <tr><td style="background:#F8FAFC;font-weight:600;color:#4B5563">화면명</td><td>사용자 관리</td></tr>
+                  <tr><td style="background:#F8FAFC;font-weight:600;color:#4B5563">접근 권한</td><td>슈퍼어드민</td></tr>
+                  <tr><td style="background:#F8FAFC;font-weight:600;color:#4B5563">Pencil Node</td><td><code>FoZyD</code></td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">UI 구성요소</div>
+                <table class="spec-table">
+                  <tr><th>#</th><th>요소</th><th>역할</th></tr>
+                  <tr><td>1</td><td><span class="spec-desc-tag desc-select">상태 드롭다운</span></td><td>전체/활성/비활성/승인대기 필터</td></tr>
+                  <tr><td>2</td><td><span class="spec-desc-tag desc-select">역할 드롭다운</span></td><td>전체/슈퍼어드민/시스템운영자 필터</td></tr>
+                  <tr><td>3</td><td><span class="spec-desc-tag desc-input">검색 인풋</span></td><td>이름 또는 아이디 검색</td></tr>
+                  <tr><td>4</td><td><span class="spec-desc-tag desc-btn">검색 버튼</span></td><td>필터 적용</td></tr>
+                  <tr><td>5</td><td><span class="spec-desc-tag desc-btn">삭제 버튼</span></td><td>선택 행 삭제 확인 모달</td></tr>
+                  <tr><td>6</td><td><span class="spec-desc-tag desc-btn">사용자 등록 버튼</span></td><td>등록 슬라이드 패널 열기</td></tr>
+                  <tr><td>7</td><td><span class="spec-desc-tag desc-text">테이블</span></td><td>No/아이디/이름/부서/역할/상태/최종접속일</td></tr>
+                  <tr><td>8</td><td><span class="spec-desc-tag desc-text">페이지네이션</span></td><td>10건/페이지</td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">상태값</div>
+                <table class="spec-table">
+                  <tr><th>상태</th><th>색상</th><th>배경</th></tr>
+                  <tr><td>활성</td><td>#059669</td><td>#ECFDF5</td></tr>
+                  <tr><td>비활성</td><td>#EF4444</td><td>#FEF2F2</td></tr>
+                  <tr><td>승인대기</td><td>#F59E0B</td><td>#FFF7ED (행 전체)</td></tr>
+                </table>
+              </div>
+              <div class="spec-section">
+                <div class="spec-section-title">Toast / Modal</div>
+                <table class="spec-table">
+                  <tr><th>유형</th><th>메시지</th></tr>
+                  <tr><td>삭제 완료</td><td>선택한 사용자가 삭제되었습니다.</td></tr>
+                </table>
+              </div>
+            </div>
+            <div class="spec-panel-content" id="sys004_0101-interaction" style="display:none">
+              <div class="interaction-item">
+                <span class="interaction-trigger">[사용자 등록] 클릭</span>
+                <span>→ 등록 슬라이드 패널 오픈 (오른쪽에서 슬라이드인)</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">행 클릭</span>
+                <span>→ 수정 슬라이드 패널 오픈 (해당 사용자 정보 자동 입력)</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">체크박스 선택 후 [삭제]</span>
+                <span>→ 삭제 확인 모달 표시 → 확인 시 삭제 처리 → Toast 표시</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">전체 체크박스</span>
+                <span>→ 현재 페이지 전체 선택/해제</span>
+              </div>
+              <div class="interaction-item">
+                <span class="interaction-trigger">[검색] 클릭</span>
+                <span>→ 필터 조건 적용하여 목록 갱신</span>
+              </div>
+            </div>
+            <div class="spec-panel-content" id="sys004_0101-history" style="display:none">
+              <p style="font-size:12px;color:#6B7280">최초 확정: 2026-04-09</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal" style="display:none">
+  <div class="modal-card">
+    <h4>삭제 확인</h4>
+    <p>선택한 사용자를 삭제할까요?</p>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeModal()">취소</button>
+      <button class="modal-btn danger" onclick="confirmDelete()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const rows = [
+  { no:1, id:'hong.gildong', name:'홍길동', dept:'시스템운영팀', role:'슈퍼어드민', status:'active', lastLogin:'2026.04.20 09:30' },
+  { no:2, id:'kim.minjae', name:'김민재', dept:'시스템운영팀', role:'시스템운영자', status:'active', lastLogin:'2026.04.19 14:22' },
+  { no:3, id:'lee.suji', name:'이수지', dept:'플랫폼개발팀', role:'시스템운영자', status:'active', lastLogin:'2026.04.18 11:05' },
+  { no:4, id:'park.jiwon', name:'박지원', dept:'시스템운영팀', role:'시스템운영자', status:'active', lastLogin:'2026.04.17 16:40' },
+  { no:5, id:'choi.yeongho', name:'최영호', dept:'인프라팀', role:'시스템운영자', status:'inactive', lastLogin:'2026.03.01 10:15' },
+  { no:6, id:'jung.hana', name:'정하나', dept:'시스템운영팀', role:'시스템운영자', status:'active', lastLogin:'2026.04.20 08:50' },
+  { no:7, id:'oh.sehun', name:'오세훈', dept:'플랫폼개발팀', role:'슈퍼어드민', status:'active', lastLogin:'2026.04.19 09:10' },
+  { no:8, id:'yoon.sera', name:'윤세라', dept:'인프라팀', role:'시스템운영자', status:'pending', lastLogin:'—' },
+  { no:9, id:'kang.doyun', name:'강도윤', dept:'시스템운영팀', role:'시스템운영자', status:'pending', lastLogin:'—' },
+  { no:10, id:'shin.mirae', name:'신미래', dept:'플랫폼개발팀', role:'시스템운영자', status:'active', lastLogin:'2026.04.15 13:20' },
+];
+
+const statusLabel = { active:'활성', inactive:'비활성', pending:'승인대기' };
+const statusClass = { active:'active', inactive:'inactive', pending:'pending' };
+let checkedRows = new Set();
+
+function renderTable() {
+  const body = document.getElementById('tableBody');
+  body.innerHTML = rows.map((r,i) => `
+    <div class="wf-table-row${r.status==='pending'?' warning':''}${checkedRows.has(i)?' selected':''}" onclick="onRowClick(${i})">
+      <div class="wf-td wf-col-check" onclick="event.stopPropagation();toggleCheck(${i})">
+        <div class="wf-checkbox${checkedRows.has(i)?' checked':''}"></div>
+      </div>
+      <div class="wf-td" style="width:50px">${r.no}</div>
+      <div class="wf-td id-col" style="width:140px">${r.id}</div>
+      <div class="wf-td" style="width:100px">${r.name}</div>
+      <div class="wf-td" style="width:120px">${r.dept}</div>
+      <div class="wf-td" style="width:120px">${r.role}</div>
+      <div class="wf-td" style="width:120px">
+        <span class="wf-badge ${statusClass[r.status]}">
+          <span class="wf-badge-dot ${statusClass[r.status]}"></span>
+          ${statusLabel[r.status]}
+        </span>
+      </div>
+      <div class="wf-td" style="width:150px;color:#111827">${r.lastLogin}</div>
+    </div>
+  `).join('');
+}
+
+function toggleCheck(i) {
+  if (checkedRows.has(i)) checkedRows.delete(i);
+  else checkedRows.add(i);
+  renderTable();
+}
+
+function toggleAllCheck() {
+  if (checkedRows.size === rows.length) checkedRows.clear();
+  else rows.forEach((_,i) => checkedRows.add(i));
+  const box = document.getElementById('allCheck');
+  box.classList.toggle('checked', checkedRows.size === rows.length);
+  renderTable();
+}
+
+function onRowClick(i) {
+  openPanel('edit', rows[i]);
+}
+
+function openPanel(mode, data) {
+  const panel = document.getElementById('slidePanel');
+  const title = document.getElementById('panelTitle');
+  const body = document.getElementById('panelBody');
+  const confirmBtn = document.getElementById('panelConfirmBtn');
+
+  if (mode === 'reg') {
+    title.textContent = '사용자 등록';
+    confirmBtn.textContent = '저장';
+    confirmBtn.onclick = () => { closePanel(); showToast('success','사용자가 등록되었습니다.'); };
+    body.innerHTML = regFormHTML();
+  } else {
+    title.textContent = '운영관리 사용자 정보';
+    confirmBtn.textContent = '저장';
+    confirmBtn.onclick = () => { closePanel(); showToast('success','변경되었습니다.'); };
+    body.innerHTML = editFormHTML(data);
+  }
+  panel.classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('slidePanel').classList.remove('open');
+}
+
+function regFormHTML() {
+  return `
+    <div class="form-row"><span class="form-label">아이디<span class="form-required">*</span></span><input class="form-input" placeholder="그룹웨어 아이디 입력"></div>
+    <div class="form-row"><span class="form-label">이름</span><div class="form-value" style="color:#9CA3AF">조회 시 자동입력</div></div>
+    <div class="form-row"><span class="form-label">부서</span><div class="form-value" style="color:#9CA3AF">조회 시 자동입력</div></div>
+    <div class="form-row"><span class="form-label">직책</span><div class="form-value" style="color:#9CA3AF">조회 시 자동입력</div></div>
+    <div class="form-row"><span class="form-label">이메일</span><div class="form-value" style="color:#9CA3AF">조회 시 자동입력</div></div>
+    <div class="form-row"><span class="form-label">역할<span class="form-required">*</span></span><select class="form-select"><option>역할 선택</option><option>슈퍼어드민</option><option>시스템운영자</option></select></div>
+  `;
+}
+
+function editFormHTML(d) {
+  if (!d) return '';
+  return `
+    <div class="form-row"><span class="form-label">아이디</span><div class="form-value">${d.id}</div></div>
+    <div class="form-row"><span class="form-label">이름</span><div class="form-value">${d.name}</div></div>
+    <div class="form-row"><span class="form-label">부서</span><div class="form-value">${d.dept}</div></div>
+    <div class="form-row"><span class="form-label">역할</span><select class="form-select"><option>${d.role}</option><option>슈퍼어드민</option><option>시스템운영자</option></select></div>
+    <div class="form-row"><span class="form-label">상태</span><select class="form-select"><option value="active"${d.status==='active'?' selected':''}>활성</option><option value="inactive"${d.status==='inactive'?' selected':''}>비활성</option></select></div>
+    <div class="form-row"><span class="form-label">최종 접속일</span><div class="form-value">${d.lastLogin}</div></div>
+  `;
+}
+
+function openDeleteModal() {
+  if (checkedRows.size === 0) { showToast('info','삭제할 사용자를 선택해주세요.'); return; }
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('deleteModal').style.display = 'none'; }
+function confirmDelete() {
+  closeModal();
+  checkedRows.clear();
+  renderTable();
+  showToast('success','선택한 사용자가 삭제되었습니다.');
+}
+
+function showToast(type, msg) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+function switchTab(tab, type, screenId) {
+  const panel = tab.closest('.spec-panel');
+  panel.querySelectorAll('.spec-panel-tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  panel.querySelectorAll('.spec-panel-content').forEach(c => c.style.display = 'none');
+  const target = document.getElementById(screenId + '-' + type);
+  if (target) target.style.display = 'block';
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen-spec-page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('screen-' + id);
+  if (el) el.classList.add('active');
+  const nav = document.getElementById('nav-' + id);
+  if (nav) nav.classList.add('active');
+}
+
+renderTable();
+</script>
+</body>
+</html>
